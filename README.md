@@ -291,15 +291,15 @@ The following showcase images are captured from the live prototype application.
 
 ### Journey Planning
 
-<img src="frontend/public/showcase/planning_showcase.png" alt="Journey Planning Interface" width="100%"/>
+<img src="academic/VAYU_ORBIT_ACADEMIC_RELEASE/frontend/public/showcase/planning_showcase.png" alt="Journey Planning Interface" width="100%"/>
 
-### Route Intelligence & Assessment
+### Convoy Builder
 
-<img src="frontend/public/showcase/route_intelligence_showcase.png" alt="Route Intelligence Interface" width="100%"/>
+<img src="academic/VAYU_ORBIT_ACADEMIC_RELEASE/frontend/public/showcase/raw_convoy.png" alt="Convoy Builder" width="100%"/>
 
 ### Active Journey Operations
 
-<img src="frontend/public/showcase/operations.png" alt="Journey Operations Interface" width="100%"/>
+<img src="academic/VAYU_ORBIT_ACADEMIC_RELEASE/frontend/public/showcase/operations.png" alt="Journey Operations Interface" width="100%"/>
 
 <details>
 <summary><strong>📸 Additional Interface Screenshots</strong></summary>
