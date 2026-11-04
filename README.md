@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="Vayu-Orbit/academic/VAYU_ORBIT_ACADEMIC_RELEASE/frontend/public/vayu_logo.png" alt="VAYU ORBIT Logo" width="220"/>
+<img src="vayu.png" alt="VAYU ORBIT Logo" width="220"/>
 
 # VAYU ORBIT
 
@@ -783,6 +783,6 @@ This project is released under a **Proprietary Academic Evaluation Licence**.
 
 **"Intelligence Around Every Journey"**
 
-<img src="Vayu-Orbit/academic/VAYU_ORBIT_ACADEMIC_RELEASE/frontend/public/vayu_logo.png" alt="VAYU ORBIT" width="140"/>
+<img src="vayu.png" alt="VAYU ORBIT" width="140"/>
 
 </div>
