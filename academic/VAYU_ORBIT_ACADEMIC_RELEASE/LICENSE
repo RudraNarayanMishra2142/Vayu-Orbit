@@ -1,0 +1,36 @@
+PROPRIETARY ACADEMIC EVALUATION AND RESEARCH LICENCE
+
+Project: VAYU ORBIT — Intelligent Convoy Movement Planning and Dynamic Route Optimization System for Military Logistics Decision Support
+Version: 6.0.0 (Academic Evaluation Release)
+Copyright Owner: Rudra Narayan Mishra (subject to verification of any co-authorship, institutional rights, or third-party contributions)
+
+IMPORTANT — READ CAREFULLY BEFORE ACCESSING, COPYING, OR USING THIS REPOSITORY:
+
+This source code, documentation, architectural specification, and associated software artifacts (collectively, the "Software") are proprietary intellectual property. This Software is distributed strictly under this limited Academic Evaluation and Research Licence ("Licence"). By accessing, viewing, running, or storing this Software, you acknowledge and agree to be bound by the terms of this Licence. If you do not agree to these terms, do not access, view, or execute this Software.
+
+1. PERMISSION AND SCOPE OF EVALUATION
+Subject to the restrictions set forth herein, the Copyright Owner grants to designated academic instructors, project advisors, authorized academic evaluators, and project teammates (collectively, "Authorized Evaluator") a non-exclusive, non-transferable, revocable, royalty-free licence solely to:
+  (a) View, read, and inspect the source code for personal academic evaluation;
+  (b) Execute the Software locally in a development environment solely for non-operational academic demonstration, grading, and coursework evaluation;
+  (c) Review the architectural design, algorithmic implementations, and documentation for academic research purposes; and
+  (d) Formulate bug reports, technical critiques, and improvement recommendations directly to the Copyright Owner.
+
+2. EXPRESS RESTRICTIONS AND PROHIBITIONS
+Except as expressly permitted in Section 1, all rights are reserved by the Copyright Owner. Under no circumstances may an Authorized Evaluator or recipient:
+  (a) Redistribute, republish, mirror, sublicense, lease, sell, or commercially exploit the Software or any portion thereof;
+  (b) Upload, publish, or commit the Software or any derived code to public code-hosting platforms (including, but not limited to, public GitHub, GitLab, Bitbucket, or public file-sharing services);
+  (c) Remove, alter, obscure, or fail to retain any copyright notices, authorship credits, attribution headers, or proprietary statements in any file;
+  (d) Claim authorship, inventorship, or exclusive ownership of the Software, or present the Software, in whole or in part, as their own work;
+  (e) Deploy, integrate, or utilize the Software for operational military use, live battlefield logistics, defence procurement, or integration into production defense networks without separate, formal written authorization and mandatory institutional clearances;
+  (f) Modify, adapt, or create derivative works of the Software with the intent to distribute, publish, or present them outside the immediate academic evaluation group, unless authorized in writing by the Copyright Owner.
+
+3. RETENTION OF OWNERSHIP
+Receiving, possessing, or executing a copy of this Software does not transfer, assign, convey, or waive any title, copyright, trademark, patent, or intellectual property right to the recipient. All title and rights in and to the Software remain exclusively with the Copyright Owner, subject to preexisting rights of third-party open-source components identified in THIRD_PARTY_NOTICES.md.
+
+4. SEPARATE WRITTEN AUTHORIZATION REQUIRED
+Any activity beyond personal academic evaluation—including, but not limited to, commercial deployment, patent filing, institutional adoption, public publication, or operational defence deployment—requires a separate, formal, written agreement signed by the Copyright Owner.
+
+5. SIMULATION AND NON-OPERATIONAL DISCLAIMER
+VAYU ORBIT IS AN ACADEMIC DECISION-SUPPORT SIMULATION PROTOTYPE. IT IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OPERATIONAL RESILIENCE, LIFE-CRITICAL SAFETY CERTIFICATION, OR NON-INFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT OWNER BE LIABLE FOR ANY CLAIM, DAMAGES, LOSSES, OR LIABILITY ARISING FROM THE USE OR MISUSE OF THIS SOFTWARE.
+
+Copyright © 2026 Rudra Narayan Mishra. All rights reserved.
