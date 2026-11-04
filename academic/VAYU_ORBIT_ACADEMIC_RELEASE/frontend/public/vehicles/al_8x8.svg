@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#080D18"/>
+      <stop offset="100%" stop-color="#0F1726"/>
+    </linearGradient>
+    <linearGradient id="gold-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFB84D"/>
+      <stop offset="100%" stop-color="#FFD180"/>
+    </linearGradient>
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(102,140,160,0.08)" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="url(#bg-grad)"/>
+  <rect width="100%" height="100%" fill="url(#grid)"/>
+
+  <!-- Tactical reticles -->
+  <circle cx="20" cy="20" r="10" fill="none" stroke="rgba(255,184,77,0.3)" stroke-width="1"/>
+  <line x1="20" y1="14" x2="20" y2="26" stroke="rgba(255,184,77,0.5)" stroke-width="1"/>
+  <line x1="14" y1="20" x2="26" y2="20" stroke="rgba(255,184,77,0.5)" stroke-width="1"/>
+  
+  <text x="36" y="24" fill="#FFB84D" font-family="'Share Tech Mono', monospace" font-size="11" letter-spacing="1">HSV // PLATFORM</text>
+  <text x="380" y="24" text-anchor="end" fill="#668CA0" font-family="'Share Tech Mono', monospace" font-size="10">VAYU // SCHEMATIC</text>
+
+  <!-- Vehicle Silhouette Outline -->
+  <g transform="translate(40, 30)">
+    
+  <path d="M 220,120 L 220,38 L 265,38 L 290,75 L 295,120 L 278,120 A 14 14 0 0 0 250,120 L 235,120 A 14 14 0 0 0 207,120" fill="rgba(255,184,77,0.22)" stroke="#FFB84D" stroke-width="2"/>
+  <rect x="15" y="42" width="200" height="72" rx="2" fill="rgba(102,140,160,0.18)" stroke="#668CA0" stroke-width="2"/>
+  <!-- 4 Axles: 2 Rear, 2 Front Steering -->
+  <circle cx="45" cy="122" r="15" fill="#080D18" stroke="#FFB84D" stroke-width="2.5"/>
+  <circle cx="82" cy="122" r="15" fill="#080D18" stroke="#FFB84D" stroke-width="2.5"/>
+  <circle cx="221" cy="122" r="15" fill="#080D18" stroke="#FFB84D" stroke-width="2.5"/>
+  <circle cx="264" cy="122" r="15" fill="#080D18" stroke="#FFB84D" stroke-width="2.5"/>
+
+  </g>
+
+  <!-- Ground Line -->
+  <line x1="30" y1="165" x2="370" y2="165" stroke="rgba(102,140,160,0.3)" stroke-width="1.5" stroke-dasharray="4 2"/>
+  <circle cx="370" cy="165" r="2.5" fill="#FFB84D"/>
+
+  <!-- Subtitle Tag -->
+  <rect x="30" y="172" width="120" height="18" rx="2" fill="rgba(102,140,160,0.12)" stroke="rgba(102,140,160,0.2)"/>
+  <text x="36" y="185" fill="#DBE1E9" font-family="'Share Tech Mono', monospace" font-size="9">8x8 MISSILE CARRIER</text>
+  <text x="370" y="185" text-anchor="end" fill="#7DA1AC" font-family="'Share Tech Mono', monospace" font-size="9">Ashok Leyland 8x8</text>
+</svg>

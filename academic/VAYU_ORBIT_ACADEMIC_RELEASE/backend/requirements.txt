@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+pydantic
+networkx
+pandas
+ortools
+PyJWT
+passlib
+bcrypt
+reportlab==4.4.10
+pillow==11.3.0
