@@ -17,6 +17,7 @@ import About from './pages/AboutCMS';
 import ErrorBoundary from './components/ErrorBoundary';
 import { api, setUnauthorizedHandler } from './services/api';
 import { getPreferences, applyThemeToDocument } from './services/preferences';
+import { subscribeToAuthChanges } from './services/firebaseAuth';
 
 const DRAFT_KEY = 'vayu_active_planning_draft_v1';
 const OPS_JOURNEY_KEY = 'vayu_active_operations_journey_id';
@@ -88,29 +89,66 @@ function App() {
     } catch {}
   }, []);
 
-  // Check existing session on mount via GET /api/auth/me
+  // Check existing session on mount and subscribe to Firebase Auth state
   useEffect(() => {
-    api.getMe()
-      .then(res => {
-        if (res && res.user) {
-          setCurrentUser(res.user);
-          setIsAuthenticated(true);
-          const prefs = getPreferences(res.user);
-          if (prefs && prefs.theme) {
-            applyThemeToDocument(prefs.theme);
+    let active = true;
+    const unsubscribe = subscribeToAuthChanges(async (fbUser) => {
+      if (!active) return;
+      if (fbUser) {
+        try {
+          const res = await api.getMe();
+          if (!active) return;
+          if (res && res.user) {
+            setCurrentUser(res.user);
+            setIsAuthenticated(true);
+            const prefs = getPreferences(res.user);
+            if (prefs && prefs.theme) {
+              applyThemeToDocument(prefs.theme);
+            }
+          } else {
+            setIsAuthenticated(false);
+            setCurrentUser(null);
           }
-        } else {
+        } catch (err) {
+          console.warn('Session verification notice:', err);
+          if (!active) return;
           setIsAuthenticated(false);
           setCurrentUser(null);
+        } finally {
+          if (active) setIsAuthenticating(false);
         }
-      })
-      .catch(() => {
-        setIsAuthenticated(false);
-        setCurrentUser(null);
-      })
-      .finally(() => {
-        setIsAuthenticating(false);
-      });
+      } else {
+        // Fallback for transition session verification
+        api.getMe()
+          .then(res => {
+            if (!active) return;
+            if (res && res.user) {
+              setCurrentUser(res.user);
+              setIsAuthenticated(true);
+              const prefs = getPreferences(res.user);
+              if (prefs && prefs.theme) {
+                applyThemeToDocument(prefs.theme);
+              }
+            } else {
+              setIsAuthenticated(false);
+              setCurrentUser(null);
+            }
+          })
+          .catch(() => {
+            if (!active) return;
+            setIsAuthenticated(false);
+            setCurrentUser(null);
+          })
+          .finally(() => {
+            if (active) setIsAuthenticating(false);
+          });
+      }
+    });
+
+    return () => {
+      active = false;
+      if (typeof unsubscribe === 'function') unsubscribe();
+    };
   }, []);
 
   // Health check polling (only when authenticated)

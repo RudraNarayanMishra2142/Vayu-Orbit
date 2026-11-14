@@ -298,7 +298,7 @@ export default function ElevationProfile({ route, status = 'idle', routeName = '
             Elevation data unavailable for this route.
           </p>
           <p className="elevation-profile-empty-sub">
-            The corridor navigation telemetry for this route does not provide 3D terrain elevation samples.
+            Corridor telemetry does not contain 3D terrain elevation samples.
           </p>
         </div>
       )}
@@ -318,7 +318,7 @@ export default function ElevationProfile({ route, status = 'idle', routeName = '
         <div className="elevation-profile-empty">
           <Mountain size={26} className="elevation-profile-empty-icon" />
           <p className="elevation-profile-empty-text" style={{ fontWeight: 500, color: 'var(--text-subtle)' }}>
-            Select origin and destination nodes to view corridor elevation profile.
+            Terrain elevation profile generates upon route calculation.
           </p>
         </div>
       )}

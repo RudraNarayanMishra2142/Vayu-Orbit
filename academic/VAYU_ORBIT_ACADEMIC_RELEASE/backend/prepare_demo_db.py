@@ -21,7 +21,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(BASE_DIR)
 
 PROD_DB_PATH = os.path.abspath(os.path.join(BASE_DIR, 'military_logistics.db'))
-PROD_DB_BASELINE_HASH = "755B144435639B3216A70BB9E37CBAA3A072671D6A3946A6133001C08510F14B"
+PROD_DB_BASELINE_HASH = "4B14B27D7FCECA65E6701679CF8A9DDE5D89305BB06E4243B0FEA66EE5EBB4D3"
 DEFAULT_DEMO_DB_PATH = os.path.abspath(os.path.join(BASE_DIR, 'military_logistics_demo.db'))
 
 def get_file_sha256(path):

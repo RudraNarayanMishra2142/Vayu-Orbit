@@ -230,7 +230,7 @@ export default function ProfileSettings({ currentUser, onLogout }) {
                 {roleMeta.description}
               </p>
               <div style={{ fontSize: 11, color: 'var(--color-text-muted)', borderTop: '1px solid var(--color-border)', paddingTop: 6, marginTop: 6 }}>
-                <strong>Notice:</strong> Roles represent software Role-Based Access Control (RBAC) authorization boundaries within the VAYU ORBIT decision-support system. They do not represent military ranks, official command authorities, or security clearance classifications. Profile attributes are provisioned via administrative identity directory; self-service editing is restricted by policy.
+                <strong>Policy:</strong> Software RBAC boundaries define application permissions; directory profile attributes are administrative and read-only.
               </div>
             </div>
           </div>
@@ -557,7 +557,7 @@ export default function ProfileSettings({ currentUser, onLogout }) {
 
           {/* Explicit Backend Limitation Notice */}
           <div className="alert warn-alert" style={{ fontSize: 11.5, lineHeight: 1.5, marginBottom: 0 }}>
-            <strong>Backend Limitation:</strong> The current backend service (v6.0.0) does not integrate external mail transfer agents (SMTP) or cellular SMS gateways. Notification delivery preferences are not persisted server-side; all tactical alerts are evaluated in real time and delivered directly within active operator sessions via the Sitrep feed and Incident Dispatch board.
+            <strong>Limitation:</strong> External SMTP/SMS gateways are not integrated in v6.0.0. All tactical alerts are evaluated in real-time and dispatched directly in-session via the Sitrep feed and Incident board.
           </div>
         </div>
 
@@ -667,7 +667,7 @@ export default function ProfileSettings({ currentUser, onLogout }) {
                 </div>
                 <div className="vayu-spec-row">
                   <span className="vayu-spec-label">Target API Host</span>
-                  <span className="vayu-spec-value">{api.base || 'http://127.0.0.1:8000'}</span>
+                  <span className="vayu-spec-value">{api.base || 'Current Origin'}</span>
                 </div>
               </div>
             </div>

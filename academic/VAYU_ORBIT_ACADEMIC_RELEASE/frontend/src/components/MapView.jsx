@@ -254,7 +254,7 @@ export default function MapView({
       });
     });
 
-    // 2. Render Selected Route: Solid Green with Glow for Road Network; Dashed Slate for Linear Fallback
+    // 2. Render Selected Route: Solid Green/Olive with subtle Glow for Road Network; Dashed Slate for Linear Fallback
     if (routeCoords.length > 1) {
       const geojson = {
         type: 'Feature',
@@ -264,16 +264,26 @@ export default function MapView({
         }
       };
 
+      const isLight = typeof document !== 'undefined' &&
+        (document.documentElement.getAttribute('data-theme') === 'light' || document.body?.classList?.contains('light-theme'));
+
+      const routeColor = hasRoadGeom ? (isLight ? '#2F5C37' : '#CEDE62') : (isLight ? '#475569' : '#8FA2B4');
+      const routeGlowColor = isLight ? '#2F5C37' : '#CEDE62';
+      const routeLineWidth = hasRoadGeom ? 3.5 : 2.5;
+      const glowOpacity = hasRoadGeom ? (isLight ? 0.12 : 0.18) : 0.0;
+
       if (m.getSource('tactical-route')) {
         m.getSource('tactical-route').setData(geojson);
         if (m.getLayer('tactical-route')) {
-          m.setPaintProperty('tactical-route', 'line-color', hasRoadGeom ? '#00E5A3' : '#668CA0');
-          m.setPaintProperty('tactical-route', 'line-width', hasRoadGeom ? 4.5 : 3.0);
-          m.setPaintProperty('tactical-route', 'line-opacity', hasRoadGeom ? 0.95 : 0.65);
+          m.setPaintProperty('tactical-route', 'line-color', routeColor);
+          m.setPaintProperty('tactical-route', 'line-width', routeLineWidth);
+          m.setPaintProperty('tactical-route', 'line-opacity', hasRoadGeom ? 0.95 : 0.7);
           m.setPaintProperty('tactical-route', 'line-dasharray', hasRoadGeom ? [1, 0] : [2, 2]);
         }
         if (m.getLayer('tactical-route-glow')) {
-          m.setPaintProperty('tactical-route-glow', 'line-opacity', hasRoadGeom ? 0.25 : 0.0);
+          m.setPaintProperty('tactical-route-glow', 'line-color', routeGlowColor);
+          m.setPaintProperty('tactical-route-glow', 'line-width', isLight ? 6 : 7);
+          m.setPaintProperty('tactical-route-glow', 'line-opacity', glowOpacity);
         }
       } else {
         m.addSource('tactical-route', {
@@ -281,29 +291,29 @@ export default function MapView({
           data: geojson
         });
 
-        // Glowing backdrop layer (only active for high-fidelity road routes)
+        // Restrained glow layer (only active for high-fidelity road routes)
         m.addLayer({
           id: 'tactical-route-glow',
           type: 'line',
           source: 'tactical-route',
           layout: { 'line-join': 'round', 'line-cap': 'round' },
           paint: {
-            'line-color': '#00E5A3',
-            'line-width': 9,
-            'line-opacity': hasRoadGeom ? 0.25 : 0.0
+            'line-color': routeGlowColor,
+            'line-width': isLight ? 6 : 7,
+            'line-opacity': glowOpacity
           }
         });
 
-        // Foreground corridor line
+        // Foreground tactical corridor line
         m.addLayer({
           id: 'tactical-route',
           type: 'line',
           source: 'tactical-route',
           layout: { 'line-join': 'round', 'line-cap': 'round' },
           paint: {
-            'line-color': hasRoadGeom ? '#00E5A3' : '#668CA0',
-            'line-width': hasRoadGeom ? 4.5 : 3.0,
-            'line-opacity': hasRoadGeom ? 0.95 : 0.65,
+            'line-color': routeColor,
+            'line-width': routeLineWidth,
+            'line-opacity': hasRoadGeom ? 0.95 : 0.7,
             'line-dasharray': hasRoadGeom ? [1, 0] : [2, 2]
           }
         });
@@ -546,34 +556,47 @@ export default function MapView({
       }
     };
 
+    const isLightSeg = typeof document !== 'undefined' &&
+      (document.documentElement.getAttribute('data-theme') === 'light' || document.body?.classList?.contains('light-theme'));
+    const segCasingColor = isLightSeg ? '#FFFFFF' : '#0F1512';
+    const segHighlightColor = isLightSeg ? '#B45309' : '#E5A93C';
+
     if (m.getSource('tactical-segment-highlight')) {
       m.getSource('tactical-segment-highlight').setData(segCoords.length > 1 ? segGeojson : { type: 'FeatureCollection', features: [] });
+      if (m.getLayer('tactical-segment-casing')) {
+        m.setPaintProperty('tactical-segment-casing', 'line-color', segCasingColor);
+      }
+      if (m.getLayer('tactical-segment-highlight')) {
+        m.setPaintProperty('tactical-segment-highlight', 'line-color', segHighlightColor);
+      }
     } else if (segCoords.length > 1) {
       m.addSource('tactical-segment-highlight', {
         type: 'geojson',
         data: segGeojson
       });
 
+      // Restrained casing
       m.addLayer({
         id: 'tactical-segment-casing',
         type: 'line',
         source: 'tactical-segment-highlight',
         layout: { 'line-join': 'round', 'line-cap': 'round' },
         paint: {
-          'line-color': '#05080F',
-          'line-width': 10,
-          'line-opacity': 0.85
+          'line-color': segCasingColor,
+          'line-width': 6,
+          'line-opacity': 0.8
         }
       });
 
+      // Restrained highlight line
       m.addLayer({
         id: 'tactical-segment-highlight',
         type: 'line',
         source: 'tactical-segment-highlight',
         layout: { 'line-join': 'round', 'line-cap': 'round' },
         paint: {
-          'line-color': '#00F0FF',
-          'line-width': 6,
+          'line-color': segHighlightColor,
+          'line-width': 3.8,
           'line-opacity': 1.0
         }
       });
@@ -602,20 +625,20 @@ export default function MapView({
           .addTo(m);
 
         const stepMsg = selectedInstruction.message || 'Continue';
-        const stepStreet = selectedInstruction.street ? `<div style="font-size: 10px; color: #8FA2B4; margin-top: 2px;">Road: ${selectedInstruction.street}</div>` : '';
-        const stepDist = selectedInstruction.stepDistanceFormatted ? `<div style="font-family: 'Share Tech Mono', monospace; font-size: 10px; color: #00E5A3; margin-top: 2px;">Leg: ${selectedInstruction.stepDistanceFormatted}</div>` : '';
+        const stepStreet = selectedInstruction.street ? `<div class="vayu-nav-popup-street">Road: ${selectedInstruction.street}</div>` : '';
+        const stepDist = selectedInstruction.stepDistanceFormatted ? `<div class="vayu-nav-popup-dist">Leg: ${selectedInstruction.stepDistanceFormatted}</div>` : '';
 
         const navPopup = new window.tt.Popup({ offset: [0, 16], closeButton: false, className: 'map-endpoint-tooltip' })
           .setHTML(`
-            <div style="font-family: 'Inter', sans-serif; font-size: 11px; color: #DBE1E9; line-height: 1.4; padding: 2px 4px;">
-              <div style="font-weight: 700; color: #00F0FF; margin-bottom: 2px;">
-                Step #${selectedInstruction.stepNumber || selectedInstruction.id + 1}: ${selectedInstruction.maneuver || 'MANEUVER'}
+            <div class="vayu-nav-popup">
+              <div class="vayu-nav-popup-title">
+                Step #${selectedInstruction.stepNumber || selectedInstruction.id + 1}: ${selectedInstruction.maneuver ? selectedInstruction.maneuver.replace('_', ' ') : 'MANEUVER'}
               </div>
-              <div>${stepMsg}</div>
+              <div class="vayu-nav-popup-body">${stepMsg}</div>
               ${stepStreet}
               ${stepDist}
-              <div style="margin-top: 6px; display: flex; justify-content: flex-end;">
-                <button id="vayu-popup-next-btn" style="background: rgba(0, 240, 255, 0.15); border: 1px solid #00F0FF; color: #00F0FF; border-radius: 4px; padding: 2px 8px; font-size: 10px; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+              <div class="vayu-nav-popup-actions">
+                <button id="vayu-popup-next-btn" class="vayu-nav-popup-btn">
                   Next Step →
                 </button>
               </div>
@@ -772,6 +795,10 @@ export default function MapView({
     return () => window.removeEventListener('vayu_theme_changed', handleTheme);
   }, [apiKey, updateMapData]);
 
+  // Runtime theme detection for render
+  const isLight = typeof document !== 'undefined' &&
+    (document.documentElement.getAttribute('data-theme') === 'light' || document.body?.classList?.contains('light-theme'));
+
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <div
@@ -818,7 +845,7 @@ export default function MapView({
             {(selectedInstruction?.stepDistanceFormatted || selectedInstruction?.street) && (
               <div className="vayu-map-hud-sub">
                 {selectedInstruction.stepDistanceFormatted && (
-                  <span style={{ color: '#00E5A3', fontWeight: 600 }}>
+                  <span style={{ color: 'var(--ok)', fontWeight: 600 }}>
                     {selectedInstruction.stepDistanceFormatted}
                   </span>
                 )}
@@ -871,8 +898,8 @@ export default function MapView({
             style={{
               width: 14,
               height: 3,
-              background: routeGeometry ? '#00E5A3' : '#668CA0',
-              borderTop: routeGeometry ? 'none' : '2px dashed #668CA0',
+              background: routeGeometry ? (isLight ? '#2F5C37' : '#CEDE62') : (isLight ? '#475569' : '#8FA2B4'),
+              borderTop: routeGeometry ? 'none' : `2px dashed ${isLight ? '#475569' : '#8FA2B4'}`,
               borderRadius: 2
             }}
           />
@@ -890,8 +917,8 @@ export default function MapView({
         )}
         {selectedInstruction && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ width: 14, height: 3, background: '#00F0FF', borderRadius: 2 }} />
-            <span style={{ color: '#00F0FF', fontWeight: 600 }}>Active Navigation Step</span>
+            <span style={{ width: 14, height: 3, background: isLight ? '#B45309' : '#E5A93C', borderRadius: 2 }} />
+            <span style={{ color: isLight ? '#B45309' : '#E5A93C', fontWeight: 600 }}>Active Navigation Step</span>
           </div>
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

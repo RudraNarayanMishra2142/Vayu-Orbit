@@ -1,0 +1,52 @@
+================================================================================
+VAYU ORBIT — PROJECT INFORMATION & ACADEMIC RELEASE RECORD
+================================================================================
+
+Project Title:
+  VAYU ORBIT — Intelligent Convoy Movement Planning and Dynamic Route 
+  Optimisation System for Military Logistics Decision Support
+
+Problem Statement ID:
+  PDS-3
+
+Academic Institution:
+  Lovely Professional University (LPU), Punjab, India
+  School of Computer Science and Engineering / SCAI
+
+Academic Session:
+  2026–2027
+
+Course / Evaluation Track:
+  B.Tech Computer Science & Engineering (Artificial Intelligence & Machine Learning)
+  Capstone Project / Academic Software Evaluation
+
+Project Team Members:
+  1. Rudra Narayan Mishra — Registration No: 12515636 (Project Author & Lead Engineer)
+  2. Suryansh Kumar Singh — Registration No: 12516274 (Co-Author & System Verification)
+
+Faculty Supervisor / Mentor:
+  Hitesh Kumar, Lovely Professional University
+
+GitHub Repository URL (Private / Restricted Academic Remote):
+  https://github.com/RudraNarayanMishra2142/Vayu-Orbit
+
+Deployment & Hosting Status:
+  LOCAL DEMONSTRATION PROTOTYPE ONLY.
+  As defined in AUTHORIZATION.md, public web deployment, cloud hosting,
+  and unauthenticated external hosting are strictly prohibited without prior
+  written authorization from the copyright holder.
+
+Documentation Location:
+  - Architecture:     docs/ARCHITECTURE.md
+  - Installation:     docs/INSTALLATION.md
+  - Testing & QA:     docs/TESTING.md
+  - Data Limits:      docs/DATA_AND_LIMITATIONS.md
+  - Release Notes:    docs/RELEASE_NOTES.md
+  - Target Spec:      docs/VAYU_ORBIT_Target_System_Specification_v1.1.pdf
+  - Product Specs:    PRD.md
+  - Authorized Use:   AUTHORIZATION.md
+  - Licence:          LICENSE
+
+================================================================================
+RECORD GENERATION DATE: 15 November 2026
+================================================================================

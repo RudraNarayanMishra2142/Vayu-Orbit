@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Lock, Eye, EyeOff, ArrowRight, Loader2, AlertCircle, User } from 'lucide-react';
+import { Lock, Eye, EyeOff, ArrowRight, Loader2, AlertCircle, User, CheckCircle2 } from 'lucide-react';
 import { api } from '../services/api';
+import { resetPassword } from '../services/firebaseAuth';
 
 /* ─────────────────────────────────────────────────────────────
    VAYU ORBIT — MERIDIAN Login Experience
@@ -11,11 +12,18 @@ import { api } from '../services/api';
    ───────────────────────────────────────────────────────────── */
 
 export default function Login({ onLoginSuccess }) {
-  const [email, setEmail]           = useState('');
-  const [password, setPassword]     = useState('');
+  const [email, setEmail]               = useState('');
+  const [password, setPassword]         = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading]       = useState(false);
-  const [error, setError]           = useState('');
+  const [loading, setLoading]           = useState(false);
+  const [error, setError]               = useState('');
+
+  // Password reset state
+  const [isResetMode, setIsResetMode]   = useState(false);
+  const [resetEmail, setResetEmail]     = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState('');
+  const [resetError, setResetError]     = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,9 +47,28 @@ export default function Login({ onLoginSuccess }) {
     }
   };
 
+  const handleResetSubmit = async (e) => {
+    e.preventDefault();
+    if (!resetEmail.trim()) {
+      setResetError('Enter your registered operator email to receive reset instructions.');
+      return;
+    }
+    setResetLoading(true);
+    setResetError('');
+    setResetSuccess('');
+    try {
+      await resetPassword(resetEmail.trim());
+      setResetSuccess('Password reset link dispatched. Please check your operator inbox.');
+    } catch (err) {
+      setResetError(err.message || 'Failed to dispatch password reset link.');
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   const handleSimFill = (roleEmail) => {
     setEmail(roleEmail);
-    setPassword('VayuOrbit@2026');
+    setPassword('');
     setError('');
   };
 
@@ -76,99 +103,201 @@ export default function Login({ onLoginSuccess }) {
       </div>
 
       {/* ── Floating Right-Panel: Authentication ── */}
-      <aside className="m-panel" role="main" aria-label="Sign in">
+      <aside className="m-panel" role="main" aria-label={isResetMode ? 'Password recovery' : 'Sign in'}>
         <div className="m-panel-inner">
-          <div className="m-panel-header">
-            <span className="m-panel-eyebrow">Operator Access</span>
-            <h1 className="m-panel-title">Sign in</h1>
-          </div>
-
-          {error && (
-            <div className="m-alert" role="alert">
-              <AlertCircle size={15} className="m-alert-icon" />
-              <span>{error}</span>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="m-form" noValidate>
-            <div className="m-field">
-              <label htmlFor="m-email" className="m-label">Email or operator ID</label>
-              <div className="m-input-wrap">
-                <User size={15} className="m-input-icon" />
-                <input
-                  id="m-email"
-                  type="email"
-                  className="m-input"
-                  placeholder="operator@vayu.local"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="username"
-                  autoFocus
-                  disabled={loading}
-                  required
-                />
+          {isResetMode ? (
+            <>
+              <div className="m-panel-header">
+                <span className="m-panel-eyebrow">Identity Recovery</span>
+                <h1 className="m-panel-title">Reset password</h1>
+                <p style={{ color: '#668CA0', fontSize: '13px', marginTop: '6px', lineHeight: 1.4 }}>
+                  Enter your registered operator email to receive password reset instructions via Firebase.
+                </p>
               </div>
-            </div>
 
-            <div className="m-field">
-              <label htmlFor="m-password" className="m-label">Password</label>
-              <div className="m-input-wrap">
-                <Lock size={15} className="m-input-icon" />
-                <input
-                  id="m-password"
-                  type={showPassword ? 'text' : 'password'}
-                  className="m-input m-input--pw"
-                  placeholder="••••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="current-password"
-                  disabled={loading}
-                  required
-                />
-                <button
-                  type="button"
-                  className="m-pw-toggle"
-                  onClick={() => setShowPassword(v => !v)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
-                </button>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className={`m-submit${loading ? ' m-submit--busy' : ''}`}
-              disabled={loading}
-            >
-              {loading ? (
-                <><Loader2 size={15} className="spin-icon" /><span>Verifying…</span></>
-              ) : (
-                <><span>Continue</span><ArrowRight size={15} /></>
+              {resetError && (
+                <div className="m-alert" role="alert">
+                  <AlertCircle size={15} className="m-alert-icon" />
+                  <span>{resetError}</span>
+                </div>
               )}
-            </button>
-          </form>
 
-          {/* Operational identity selector — quick-switch role profiles */}
-          <div className="m-sim">
-            <span className="m-sim-label">Operational role profiles</span>
-            <div className="m-sim-row">
-              {[
-                ['creator@vayu.local', 'Creator'],
-                ['checkpoint@vayu.local', 'Checkpoint'],
-                ['coordinator@vayu.local', 'Coordinator'],
-              ].map(([roleEmail, label]) => (
+              {resetSuccess && (
+                <div className="m-alert" style={{ background: 'rgba(34,197,94,0.1)', borderColor: 'rgba(34,197,94,0.3)', borderLeft: '3px solid #22c55e', color: '#86efac' }} role="status">
+                  <CheckCircle2 size={15} style={{ color: '#22c55e' }} className="m-alert-icon" />
+                  <span>{resetSuccess}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleResetSubmit} className="m-form" noValidate>
+                <div className="m-field">
+                  <label htmlFor="m-reset-email" className="m-label">Operator email</label>
+                  <div className="m-input-wrap">
+                    <User size={15} className="m-input-icon" />
+                    <input
+                      id="m-reset-email"
+                      type="email"
+                      className="m-input"
+                      placeholder="operator@vayu.local"
+                      value={resetEmail}
+                      onChange={(e) => setResetEmail(e.target.value)}
+                      autoFocus
+                      disabled={resetLoading}
+                      required
+                    />
+                  </div>
+                </div>
+
                 <button
-                  key={roleEmail}
-                  type="button"
-                  className={`m-sim-btn${email === roleEmail ? ' m-sim-btn--on' : ''}`}
-                  onClick={() => handleSimFill(roleEmail)}
+                  type="submit"
+                  className={`m-submit${resetLoading ? ' m-submit--busy' : ''}`}
+                  disabled={resetLoading}
                 >
-                  {label}
+                  {resetLoading ? (
+                    <><Loader2 size={15} className="spin-icon" /><span>Dispatching…</span></>
+                  ) : (
+                    <><span>Send Reset Link</span><ArrowRight size={15} /></>
+                  )}
                 </button>
-              ))}
-            </div>
-          </div>
+
+                <button
+                  type="button"
+                  style={{
+                    background: 'transparent',
+                    border: '1px solid rgba(102,140,160,0.2)',
+                    borderRadius: '5px',
+                    color: '#9BBDCE',
+                    padding: '9px 14px',
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    marginTop: '4px'
+                  }}
+                  onClick={() => {
+                    setIsResetMode(false);
+                    setResetSuccess('');
+                    setResetError('');
+                  }}
+                >
+                  Back to Sign in
+                </button>
+              </form>
+            </>
+          ) : (
+            <>
+              <div className="m-panel-header">
+                <span className="m-panel-eyebrow">Operator Access</span>
+                <h1 className="m-panel-title">Sign in</h1>
+              </div>
+
+              {error && (
+                <div className="m-alert" role="alert">
+                  <AlertCircle size={15} className="m-alert-icon" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="m-form" noValidate>
+                <div className="m-field">
+                  <label htmlFor="m-email" className="m-label">Email or operator ID</label>
+                  <div className="m-input-wrap">
+                    <User size={15} className="m-input-icon" />
+                    <input
+                      id="m-email"
+                      type="email"
+                      className="m-input"
+                      placeholder="operator@vayu.local"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      autoComplete="username"
+                      autoFocus
+                      disabled={loading}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="m-field">
+                  <label htmlFor="m-password" className="m-label">Password</label>
+                  <div className="m-input-wrap">
+                    <Lock size={15} className="m-input-icon" />
+                    <input
+                      id="m-password"
+                      type={showPassword ? 'text' : 'password'}
+                      className="m-input m-input--pw"
+                      placeholder="••••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      autoComplete="current-password"
+                      disabled={loading}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="m-pw-toggle"
+                      onClick={() => setShowPassword(v => !v)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2px' }}>
+                    <button
+                      type="button"
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#668CA0',
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        padding: '2px 0',
+                        fontFamily: "'Inter', sans-serif"
+                      }}
+                      onClick={() => {
+                        setResetEmail(email);
+                        setIsResetMode(true);
+                        setError('');
+                      }}
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className={`m-submit${loading ? ' m-submit--busy' : ''}`}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <><Loader2 size={15} className="spin-icon" /><span>Verifying…</span></>
+                  ) : (
+                    <><span>Continue</span><ArrowRight size={15} /></>
+                  )}
+                </button>
+              </form>
+
+              {/* Operational identity selector — quick-switch role profiles */}
+              <div className="m-sim">
+                <span className="m-sim-label">Operational role profiles</span>
+                <div className="m-sim-row">
+                  {[
+                    ['creator@vayu.local', 'Creator'],
+                    ['checkpoint@vayu.local', 'Checkpoint'],
+                    ['coordinator@vayu.local', 'Coordinator'],
+                  ].map(([roleEmail, label]) => (
+                    <button
+                      key={roleEmail}
+                      type="button"
+                      className={`m-sim-btn${email === roleEmail ? ' m-sim-btn--on' : ''}`}
+                      onClick={() => handleSimFill(roleEmail)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </aside>
     </div>

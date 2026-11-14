@@ -14,6 +14,7 @@ import {
   setTheme,
   getEffectiveTheme
 } from '../services/preferences';
+import { api } from '../services/api';
 
 const NAV = [
   ['Command',    'Overview',              LayoutDashboard],
@@ -333,7 +334,7 @@ export default function Layout({ page, setPage, health, children, currentUser, o
             {/* Backend Connection Status Indicator */}
             <div
               className={`conn-indicator ${health ? 'online' : 'offline'}`}
-              title={`API Connection: ${health ? 'Connected (http://127.0.0.1:8000)' : 'Connecting / Unreachable'}`}
+              title={`API Connection: ${health ? `Connected (${api.base})` : 'Connecting / Unreachable'}`}
             >
               <span className="conn-dot" aria-hidden="true" />
               <span className="conn-label">{health ? 'API connected' : 'Connecting…'}</span>

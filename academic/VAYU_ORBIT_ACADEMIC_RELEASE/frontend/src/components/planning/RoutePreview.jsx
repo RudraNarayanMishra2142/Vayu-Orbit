@@ -12,7 +12,7 @@ export default function RoutePreview({ status, route, error, onRetry }) {
 
       {status === 'idle' && (
         <p className="preview-muted">
-          Select origin and destination nodes to view corridor preview.
+          Configure corridor endpoints to compute route parameters.
         </p>
       )}
 

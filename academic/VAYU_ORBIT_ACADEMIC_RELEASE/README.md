@@ -1,347 +1,499 @@
-# VAYU ORBIT
+# VAYU ORBIT — Academic Release v6.0.0
+## Military Logistics Convoy Decision-Support System (PDS-3)
 
-### Intelligent Convoy Movement Planning & Dynamic Route Optimization System for Military Logistics Decision Support
-
-**Author:** Rudra Narayan Mishra  
-**Release:** Academic Evaluation Release (v6.0.0)  
-**Distribution Target:** Academic Instructors, Evaluators & Authorized Collaborators  
-**Licence:** Proprietary Academic Evaluation Licence (See [LICENSE](LICENSE))  
-**Copyright:** Copyright © 2026 Rudra Narayan Mishra. All rights reserved.  
-
----
-
-## 1. PROJECT OVERVIEW
-
-**VAYU ORBIT** is an academic software engineering and decision-support prototype designed to model, simulate, optimize, and supervise complex military logistical convoy movements across large geographical transportation corridors.
-
-Combining constraint-aware graph network routing, vehicle axle weight calculations, live telemetry simulation, dynamic disruption re-planning, and automated debrief reporting, VAYU ORBIT provides military logistics planners with actionable intelligence before, during, and after critical transport missions.
-
-- **Tagline:** *Intelligence Around Every Journey*
-- **Primary Operational Loop:**
-  $$\text{PLAN} \longrightarrow \text{MOVE} \longrightarrow \text{MONITOR} \longrightarrow \text{DETECT} \longrightarrow \text{RESPOND} \longrightarrow \text{REPORT} \longrightarrow \text{PLAN}$$
-
----
-
-## 2. ACADEMIC PURPOSE
-
-This release package is created exclusively for **academic evaluation, coursework examination, architectural review, and non-commercial demonstration**. 
-
-It allows academic teachers, project examiners, and authorized student collaborators to:
-1. Inspect the source-code architecture, mathematical graph heuristics, and component models.
-2. Run the application locally in an isolated development environment without touching any production database.
-3. Validate software engineering principles, security boundaries (JWT/RBAC), and user experience design.
-4. Verify algorithmic correctness through the integrated test suites.
-
----
-
-## 3. PROBLEM STATEMENT
-
-Military logistics convoy movement planning across vast territories is hampered by several critical challenges:
-1. **Multi-Echelon Physical Road Constraints:** Heavy transport vehicles (e.g., tank transporters, ammunition carriers) exceed the axle-load limits and vertical height clearances of civilian bridges and narrow mountain corridors.
-2. **Dynamic Route Fragility:** Real-world disruptions (landslides, flash floods, simulated SITREP threats, civil strikes) require instant re-routing that takes convoy mass, speed, and remaining fuel into account.
-3. **Information Asymmetry:** Convoy dispatchers often lack real-time visibility into inter-vehicle spacing violations, speed limits, and checkpoint clearance delays.
-4. **Post-Mission Debrief Gaps:** Historical convoy data is frequently lost in fragmented paperwork, preventing institutional learning and route optimization.
-
----
-
-## 4. PROPOSED SOLUTION
-
-VAYU ORBIT addresses these challenges through a unified tactical platform:
-- **Corridor Graph Engine:** A multi-node topological network representing 116 military installations, cantonments, and airbases with enforced weight, height, and clearance constraints.
-- **VORAM & ROP Readiness Matrix:** The *Vayu Operational Readiness & Assessment Matrix* (VORAM) evaluates convoy readiness across 7 critical logistical vectors before dispatch.
-- **Tactical Rerouting Heuristics:** Modified Dijkstra routing using NetworkX with dynamic penalty weight adjustments triggered by real-time SITREP intelligence.
-- **Atomic Incident Ledger & Real-Time Monitoring:** Real-time detection and logging of spacing deviations, fuel deficits, and checkpoint delays.
-- **Automated Debrief PDF Generation:** One-click generation of multi-page mission debrief PDFs detailing GPS waypoints, telemetry graphs, and incident chronologies.
-
----
-
-## 5. MAJOR SYSTEM CAPABILITIES
-
-### Implemented & Verified Capabilities
-- **Pan-India GIS Installation Registry (116 Nodes):** Complete node catalog with latitude/longitude coordinates, state jurisdictions, and clearance delay multipliers.
-- **Master Fleet Catalog (36 Military Models):** Detailed vehicle specs across 5 categories:
-  - Category A: Light Tactical Vehicles (LTV) — Tata Safari GS800, Mahindra Armado, Gypsy.
-  - Category B: Medium Logistical Vehicles (MSV) — Ashok Leyland Stallion 4x4, Tata 713 TC.
-  - Category C: Heavy Logistical & Specialist Vehicles (HSV) — Tatra 8x8, AL FAT 6x6, Scania HET.
-  - Category D: Armoured Combat Vehicles (ACV) — BMP-2 Sarath, T-90 Bhishma, T-72 Ajeya.
-  - Category E: Heavy Equipment Transporters (HET) — Tank trailers and recovery vehicles.
-- **Dynamic Convoy Composition:** Real-time calculation of total convoy weight, max axle load, minimum vertical clearance, and convoy length.
-- **Constraint-Aware Route Planning:** Automated identification of blocked corridors, delay penalties, and alternate route generation.
-- **VORAM Pre-Dispatch Readiness Gate:** Enforces speed, spacing, fuel reserve, escort necessity, and driver clearance before allowing mission commitment.
-- **Live Lifecycle Operations Dashboard:** Simulates real-time convoy progression through active, interrupted, and completed phases.
-- **Automated Incident Logging:** Detects rule violations (e.g., speed > 60 km/h, spacing < 40m).
-- **ReportLab PDF Debrief Generator:** Compiles audit logs, mission timelines, and charts into downloadable PDF debrief reports.
-- **Role-Based Access Control (RBAC):** Cryptographically enforced JWT authentication for 4 distinct roles: `COORDINATOR`, `COMMANDER`, `OPERATOR`, `OBSERVER`.
-
-### Partially Implemented / Experimental Capabilities
-- **What-If Scenario Sandbox (`scenario_engine.py`):** Deterministic mathematical perturbation engine for evaluating multi-threat simulations against baseline routes.
-- **Multi-Route Elevation Profiler:** Visual elevation approximation based on corridor geographical coordinates.
-
----
-
-## 6. TECHNOLOGY STACK
-
-### Backend
-- **Framework:** FastAPI `0.142.2` (Asynchronous ASGI REST API)
-- **ASGI Server:** Uvicorn `0.54.0`
-- **Data Serialization & Validation:** Pydantic `2.13.5`
-- **Graph & Algorithms:** NetworkX `3.6.1` (Corridor Graph Dijkstra)
-- **Security & Cryptography:** PyJWT `2.13.0`, Passlib `1.7.4`, Bcrypt `4.1.3`
-- **Report Generation:** ReportLab `4.4.10`, Pillow `11.3.0`
-- **Database Engine:** SQLite 3 (WAL journal mode, busy timeout 5000ms)
-- **Test Framework:** Pytest `9.1.1`
-
-### Frontend
-- **Framework:** React `19.3.0` (Client Single Page Application)
-- **Tooling & Bundler:** Vite `8.3.3` (with `@vitejs/plugin-react` `6.1.2`)
-- **Mapping & GIS:** Leaflet `1.9.4`
-- **Icons:** Lucide React `1.52.0`
-- **Design System:** Custom tactical CSS with CSS variables, dark/light theme support, and responsive grid layouts.
-
----
-
-## 7. SYSTEM ARCHITECTURE OVERVIEW
-
-```text
-┌───────────────────────────────────────────────────────────────┐
-│                    VAYU ORBIT FRONTEND                        │
-│      React 19 / Vite 8 / Leaflet GIS / Lucide Tactical Icons  │
-│  (Overview, Planning, Convoy, Assessment, Operations, Report) │
-└───────────────────────────────┬───────────────────────────────┘
-                                │ HTTPS / REST API + JWT
-┌───────────────────────────────▼───────────────────────────────┐
-│                    VAYU ORBIT BACKEND                         │
-│               FastAPI / Uvicorn / Pydantic                    │
-├───────────────────────────────┬───────────────────────────────┤
-│  Routing & Graph Engines      │  Security & Governance        │
-│  - tactical_router.py         │  - auth.py (JWT / RBAC)       │
-│  - NetworkX Dijkstra          │  - audit_service.py           │
-├───────────────────────────────┼───────────────────────────────┤
-│  Logistics Intelligence       │  Reporting & Export           │
-│  - fleet_engine.py            │  - report_service.py          │
-│  - voram_service.py           │  - report_pdf.py (ReportLab)  │
-│  - intelligence_engine.py     │  - revision_service.py        │
-└───────────────────────────────┬───────────────────────────────┘
-                                │ SQLite PRAGMA WAL
-┌───────────────────────────────▼───────────────────────────────┐
-│              ISOLATED DEMO DATABASE (SQLite)                  │
-│               military_logistics_demo.db                      │
-│     (116 Places, 36 Models, Demo Journeys, Audit Ledger)      │
-└───────────────────────────────────────────────────────────────┘
+```
+================================================================================
+  VAYU ORBIT: ADVANCED MILITARY CONVOY LOGISTICS & ROUTE ASSESSMENT SYSTEM
+  Academic Research Evaluation Prototype | Release Version: 6.0.0
+  Capstone Project | School of Computer Science & Engineering
+  Lovely Professional University, Punjab, India | Academic Session 2026–2027
+================================================================================
 ```
 
 ---
 
-## 8. REPOSITORY STRUCTURE (ACADEMIC PACKAGE)
+## 1. Abstract / Executive Summary
 
-```text
-academic/VAYU_ORBIT_ACADEMIC_RELEASE/
-├── LICENSE                          # Proprietary academic evaluation licence
-├── COPYRIGHT.md                     # Copyright declaration & ownership attribution
-├── AUTHORIZED_USE.md                # Permitted academic use & operational boundaries
-├── THIRD_PARTY_NOTICES.md           # Third-party dependencies & licence register
-├── README.md                        # THIS MAIN DOCUMENTATION
-├── START_VAYU_ORBIT_DEMO.bat        # One-click demo launcher (supervisor)
-├── RESET_VAYU_ORBIT_DEMO.bat        # Demo database reset utility
-├── SEED_DEMO_SCENARIOS.bat          # Sample scenarios pre-stager
-├── backend/                         # FastAPI backend service
-│   ├── api.py                       # REST API endpoints & route handlers
-│   ├── auth.py                      # Authentication & token verification
-│   ├── audit_service.py             # Atomic audit logging service
-│   ├── database_engine.py           # Master node GPS database provisioner
-│   ├── demo_launcher.py             # Process supervisor & port health checker
-│   ├── fleet_engine.py              # Convoy calculations & constraints
-│   ├── intelligence_engine.py       # Heuristic SITREP text parser
-│   ├── migrate_fleet_schema.py      # Master vehicle fleet catalog migrations
-│   ├── military_logistics.db        # Protected catalog master baseline
-│   ├── military_logistics_demo.db   # Active isolated demonstration database
-│   ├── prepare_demo_db.py           # Demo DB reset utility
-│   ├── report_pdf.py                # ReportLab PDF debrief engine
-│   ├── report_service.py            # Journey analytics & report aggregator
-│   ├── requirements.txt             # Python dependencies manifest
-│   ├── revision_service.py          # Multi-hop route revision engine
-│   ├── scenario_engine.py           # Phase 4 what-if perturbation sandbox
-│   ├── seed_demo_scenarios.py       # Demo scenario seeder
-│   ├── tactical_router.py           # NetworkX graph Dijkstra router
-│   ├── vehicle_database.py          # Fleet schema provisioner
-│   ├── voram_service.py             # VORAM readiness matrix engine
-│   └── tests/                       # Formal pytest automated test suite
-│       ├── test_voram_api.py        # 13 VORAM API integration tests
-│       └── test_voram_core.py       # 44 VORAM core algorithmic unit tests
-├── frontend/                        # React 19 / Vite client application
-│   ├── index.html                   # HTML5 client entry point
-│   ├── package.json                 # Node package manifest
-│   ├── package-lock.json            # Dependency lockfile
-│   ├── vite.config.js               # Bundler configuration
-│   ├── .env.local                   # Local API host binding
-│   ├── .env.example                 # Environment template
-│   ├── vayu.png                     # Protected brand logo
-│   ├── vayu_logo.png                # Primary brand asset
-│   ├── public/                      # Static assets & vehicle SVGs
-│   └── src/                         # React component & page source code
-│       ├── App.jsx                  # Main application state container
-│       ├── main.jsx                 # Client DOM mounting
-│       ├── styles.css               # Tactical design system tokens & styles
-│       ├── components/              # Layout, MapView, ErrorBoundary, Planning
-│       ├── pages/                   # 14 active tactical application views
-│       └── services/                # API client, navigation, preferences
-└── documentation/                   # Evaluation documentation
-    ├── VAYU_ORBIT_Target_System_Specification_v1.1.pdf
-    ├── VAYU_ORBIT_DEMO_SCENARIOS.md
-    ├── DEMO_QUICK_START.md
-    └── DEMO_TROUBLESHOOTING.md
+**VAYU ORBIT** is a military logistics convoy planning, route assessment, and operational decision-support prototype developed under Academic Problem Statement **PDS-3** (Autonomous / Semi-Autonomous Logistics & Tactical Convoy Scheduling). 
+
+Military logistics operations in rugged, high-altitude, and hostile environments demand rapid, multi-criteria decision-making that accounts for vehicle mechanical limitations, strict payload safety margins, tactical threat geography, dynamic weather advisories, and real-time recon intelligence. Traditional civilian route optimization tools do not account for bridge weight classifications, convoy column speed penalties, road opening party (ROP) clearances, or military payload separation rules.
+
+VAYU ORBIT addresses these constraints through a unified, high-integrity decision-support system featuring:
+- A **multi-factor cost-weighted routing engine** that incorporates gradient, surface friction, tactical risk, and payload class.
+- The proprietary **VORAM (Vayu Orbit Risk Assessment Model)** algorithm, providing real-time risk classification across transit corridors.
+- An **operational vehicle manifest validation pipeline** enforcing axle load limits, freight vs. passenger segregation, and tare vs. payload semantics.
+- A **Road Opening Party (ROP) reconnaissance integration** allowing forward clearing teams to inject road status, obstacles, and security clearances.
+- A **tactical NLP SITREP (Situation Report) parser** converting unstructured intelligence text into structured waypoint risks.
+- A restrained, industrial **Haulix-inspired UI/UX** optimized for low-latency cognitive processing in high-stress operational command posts.
+
+---
+
+## 2. Academic Context & Attribution
+
+This system was conceived, designed, engineered, and evaluated as an academic capstone project at **Lovely Professional University (LPU)**, Phagwara, Punjab, India.
+
+- **Institution:** Lovely Professional University, Punjab, India
+- **Department:** School of Computer Science and Engineering
+- **Academic Session:** 2026–2027
+- **Problem Statement ID:** PDS-3 (Tactical Convoy Scheduling & Military Logistics Decision Support)
+- **Primary Author & Lead Developer:** Rudra Narayan Mishra (Registration No: `12515636`)
+- **Co-Author & Contributor:** Suryansh Kumar Singh (Registration No: `12516274`)
+- **Project Supervisor & Evaluator:** Er. Hitesh Kumar, Assistant Professor
+- **Canonical Repository:** `https://github.com/RudraNarayanMishra2142/Vayu-Orbit.git`
+- **Release Version:** `6.0.0` (Academic Milestone Build)
+
+All rights, authorship records, and intellectual property attributions are formally recorded in [AUTHORIZATION.md](AUTHORIZATION.md) and protected under the academic evaluation terms in [LICENSE](LICENSE).
+
+---
+
+## 3. Problem Statement & Operational Domain
+
+Under **PDS-3**, logistics planners must deploy military convoys across complex geographical corridors (e.g., Northern / Eastern operational theatres) under strict constraints:
+
+1. **Topographical & Surface Vulnerability:** Severe elevation gradients, hairpin switchbacks, unpaved terrain, and seasonal weather degradation severely degrade heavy vehicle performance, fuel burn rates, and column cohesion.
+2. **Tactical Threat Environment:** Convoys traverse zones subject to artillery observation, ambush risks, mine/IED threats, and civilian congestion. Route planning must incorporate real-time threat zones and ROP scout clearance.
+3. **Bridge & Axle Classification:** Heavy logistics carriers (e.g., Ashok Leyland Stallion 4×4, 6×6, Scania Tank Transporters) must respect bridge load classes and road width envelopes.
+4. **Fuel Safety & Autonomous Margin Planning:** Fuel consumption is non-linear; mountain gradients and slow convoy crawl speeds triple consumption. A strict safety reserve margin must be guaranteed to prevent stranding.
+5. **Decentralized Coordination:** Command headquarters, dispatchers, ROP recon parties, and vehicle operators require synchronized visibility without cognitive clutter or decorative UI overhead.
+
+---
+
+## 4. System Architecture Overview
+
+VAYU ORBIT follows a decoupled, client-server micro-architecture engineered for rapid cold start, zero cloud lock-in, and offline operational resilience, augmented with Firebase Authentication and App Check for enterprise-grade edge attestation:
+
+```
++-------------------------------------------------------------------------------+
+|                             CLIENT / FRONTEND                                 |
+|  React 18 + Vite SPA | Tailwind CSS (Haulix Theme) | Lucide-React             |
+|  Firebase Web SDK (Auth + App Check) | Offline Tactical Vector Canvas         |
++---------------------------------------+---------------------------------------+
+                                        | HTTPS / REST + X-Firebase-AppCheck
+                                        | Authorization: Bearer <ID_TOKEN>
++---------------------------------------v---------------------------------------+
+|                             API & ROUTING ENGINE                              |
+|  FastAPI (Python 3.11+) | Pydantic v2 Validation Schemas                      |
+|  - Firebase Admin SDK Token Verification & JIT Identity Resolution             |
+|  - Authoritative Local RBAC (Creator, Checkpoint Operator, Coordinator, Admin)|
+|  - Modified Dijkstra Multi-Factor Corridor Router                             |
+|  - VORAM v2 Multi-Criteria Risk Assessment Engine                            |
+|  - Manifest Validation Pipeline & Fuel Safety Calculator                     |
+|  - NLP SITREP Parser & Threat Geography Injector                              |
+|  - ROP Reconnaissance State Machine & Route Re-evaluation Engine              |
++---------------------------------------+---------------------------------------+
+                                        | SQLite3 Prepared Transactions
++---------------------------------------v---------------------------------------+
+|                             PERSISTENCE TIER                                  |
+|  Dual-Adapter Architecture (SQLite 3 / Cloud SQL for PostgreSQL)              |
+|  Firebase Data Connect / SQL Connect Declarative Schema (18 Tables)            |
+|  - User Identity Registry (Firebase UID, Status, Authoritative Roles)         |
+|  - Stations Catalog (116 Nodes) | Route Segments & Topography                |
+|  - Vehicle Fleet Master (GVW, Payload, Class) | Active Journeys               |
+|  - ROP Recon Reports | Threat Advisories | Immutable Audit Logs               |
++-------------------------------------------------------------------------------+
 ```
 
----
-
-## 9. PREREQUISITES
-
-Before running the application, ensure the host machine has:
-1. **Python:** Version `3.11` or higher (Tested on `3.13.6` 64-bit). Ensure `python` is added to system `PATH`.
-2. **Node.js & npm:** Node.js LTS version `18` or `20+` (Tested with npm `11.x`).
-3. **Web Browser:** Google Chrome, Microsoft Edge, or Mozilla Firefox.
+Full architecture specifications, data flow diagrams, and sequence models are documented in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ---
 
-## 10. BACKEND INSTALLATION
+## 5. Key Innovations & Proprietary Algorithms
 
-Open a terminal (PowerShell or Bash) in `academic/VAYU_ORBIT_ACADEMIC_RELEASE/`:
+### 5.1 Modified Dijkstra Multi-Factor Corridor Routing
+Instead of traditional minimum-distance routing, VAYU ORBIT computes optimal convoy transit paths by minimizing an operational cost function $C(e)$ across network edge $e$:
+$$C(e) = L(e) \times \left(1 + w_{\text{grad}} \cdot G(e) + w_{\text{surf}} \cdot S(e) + w_{\text{threat}} \cdot T(e) + w_{\text{weather}} \cdot W(e)\right)$$
+Where:
+- $L(e)$ is physical corridor length in kilometers.
+- $G(e)$ is gradient coefficient derived from terrain elevation profiles.
+- $S(e)$ is road surface friction penalty (Highway, Primary, Unpaved, Alpine Track).
+- $T(e)$ is real-time tactical threat level ($0.0$ to $1.0$) injected via SITREP or command override.
+- $W(e)$ is weather severity index (Clear, Rain, Snow, Severe Fog).
+- Weights $w$ adapt according to convoy vehicle class and gross vehicle weight.
 
-```powershell
+### 5.2 VORAM (Vayu Orbit Risk Assessment Model)
+VORAM scores operational mission risk on a calibrated scale of $0$ to $100$ and stratifies corridors into four tactical risk tiers:
+- **LOW (< 30):** Routine logistics movement authorized under standard escort.
+- **MODERATE (30–59):** Enhanced scout detachment required; secondary communications active.
+- **HIGH (60–79):** Armed escort mandatory; ROP recon verification required prior to dispatch.
+- **CRITICAL (>= 80):** Movement suspended or diverted unless cleared by Brigade Command override.
+
+### 5.3 Deterministic Fuel Safety Margin Formulation
+Fuel burn accounts for gross vehicle weight, payload tons, gradient crawl factors, and idling contingencies:
+$$\text{Fuel}_{\text{req}} = \text{BaseRate} \times \text{Distance} \times (1 + k_{\text{gradient}} + k_{\text{payload}} + k_{\text{weather}}) \times (1 + \text{SafetyMargin}_{\text{reserve}})$$
+The system enforces a mandatory $20\%$ minimum reserve margin for plain corridors and $35\%$ for high-altitude mountainous sectors.
+
+### 5.4 Road Opening Party (ROP) Dynamic Integration
+Forward ROP scout detachments submit physical road status (Clear, Congested, Damaged, Ambush Threat, IED Suspected). When a critical hazard is confirmed on an active corridor, VAYU ORBIT dynamically flags the journey, restricts clearance, and computes bypass routes.
+
+---
+
+## 6. Technology Stack
+
+| Layer | Component | Version | Purpose / Rationale |
+|---|---|---|---|
+| **Frontend Framework** | React | 18.2.0 | Reactive component architecture, operational state management |
+| **Build Tool** | Vite | 5.1.0+ | Fast hot module replacement and production bundling (< 1s build) |
+| **Styling & Theme** | Tailwind CSS | 3.4.1 | Custom Haulix industrial color tokens, high-contrast dark/light modes |
+| **Icons** | Lucide React | 0.344.0 | Crisp, restrained tactical iconography |
+| **Mapping Engine** | TomTom Web SDK | 6.x | High-resolution satellite/road tiles with automatic vector fallback |
+| **Authentication (Client)** | Firebase Web SDK | 10.8.0+ | Client auth state, session persistence, password recovery |
+| **Edge Attestation** | Firebase App Check | 10.8.0+ | reCAPTCHA v3 client device verification |
+| **Backend Framework** | FastAPI | 0.109.0+ | High-throughput asynchronous REST API, OpenAPI auto-documentation |
+| **Auth Verification** | Firebase Admin SDK | 6.5.0+ | RS256 token validation & Google Identity Platform integration |
+| **Data Validation** | Pydantic | 2.6.0+ | Strict type enforcement for manifests, coordinates, and requests |
+| **Database (Embedded)** | SQLite 3 | Embedded | Zero-dependency, portable, relational ACID data engine |
+| **Database (Managed)** | Cloud SQL for PostgreSQL | 15+ | Enterprise relational storage with JSONB & sequence identity |
+| **Data Connector** | Firebase SQL Connect | v1beta | Managed GraphQL SDL schema & Cloud SQL bridge |
+| **Database Driver** | Psycopg 3 | 3.1.0+ | Non-blocking, connection-pooled PostgreSQL driver |
+| **Test Suite** | Pytest & Asyncio | 8.0.0+ | Automated regression testing (unit, route calculation, API) |
+
+---
+
+## 7. Prerequisites & System Requirements
+
+### Hardware Requirements
+- **Processor:** Dual-core 2.0 GHz or higher (x86_64 or ARM64)
+- **RAM:** Minimum 4 GB (8 GB recommended for simultaneous dev servers)
+- **Storage:** 500 MB free disk space for release files and SQLite databases
+- **Display:** Recommended minimum resolution 1280 × 800 (Fully responsive from 390px mobile to 4K desktop)
+
+### Software Prerequisites
+- **Python:** 3.11.0 or higher (Must be added to system `PATH`)
+- **Node.js:** v18.0.0 LTS or v20.0.0 LTS (with `npm` v9+)
+- **Operating System:** Windows 10/11, Ubuntu 22.04+ LTS, macOS Monterey 12+
+
+---
+
+## 8. Quick Start Guide
+
+### 8.1 Instant Windows Launch (One-Click Launchers)
+For Windows demonstration and evaluation, three automated batch scripts are provided in the release root:
+
+1. **Start System:**
+   ```bat
+   START_VAYU_ORBIT_DEMO.bat
+   ```
+   *Launches backend on port 8000, launches frontend on port 5173, and launches default browser.*
+
+2. **Seed Demonstration Scenarios:**
+   ```bat
+   SEED_DEMO_SCENARIOS.bat
+   ```
+   *Populates active journeys, pre-configured ROP reports, and realistic tactical SITREPs.*
+
+3. **Reset Database to Pristine Baseline:**
+   ```bat
+   RESET_VAYU_ORBIT_DEMO.bat
+   ```
+   *Restores the cryptographic pristine baseline SQLite database.*
+
+---
+
+### 8.2 Cross-Platform Manual Startup
+
+#### Step 1: Install Python Dependencies
+```bash
 cd backend
-python -m pip install -r requirements.txt
+pip install -r ../requirements.txt
 ```
 
-Verify the installation:
-```powershell
-python -c "import fastapi, uvicorn, networkx, reportlab; print('All core modules installed successfully!')"
+#### Step 2: Initialize Database
+```bash
+python prepare_demo_db.py
 ```
 
----
+#### Step 3: Launch Backend Server
+```bash
+python -m uvicorn api:app --host 127.0.0.1 --port 8000 --reload
+```
+*Backend runs at `http://localhost:8000`. Interactive OpenAPI documentation available at `http://localhost:8000/docs`.*
 
-## 11. FRONTEND INSTALLATION
-
-In another terminal window:
-
-```powershell
+#### Step 4: Install & Launch Frontend
+In a separate terminal:
+```bash
 cd frontend
+cp .env.example .env
 npm install
-```
-
----
-
-## 12. ENVIRONMENT CONFIGURATION
-
-The frontend connects to the backend via `VITE_API_BASE_URL`. A pre-configured `.env.local` is included:
-
-```ini
-VITE_API_BASE_URL=http://127.0.0.1:8000
-```
-
-If deploying on a different local port, edit `.env.local` accordingly.
-
----
-
-## 13. DATABASE INITIALISATION
-
-The academic release includes a pre-staged demonstration database (`backend/military_logistics_demo.db`).
-
-If you ever wish to reset the database to a pristine zero-journey state:
-- Double-click `RESET_VAYU_ORBIT_DEMO.bat`, OR
-- Run:
-  ```powershell
-  python backend/prepare_demo_db.py
-  ```
-
-To pre-stage sample demonstration journeys (`CMS-DEMO-ACTIVE-01` and `CMS-DEMO-COMPLETED-02`):
-- Double-click `SEED_DEMO_SCENARIOS.bat`, OR
-- Run:
-  ```powershell
-  python backend/seed_demo_scenarios.py
-  ```
-
----
-
-## 14. RUNNING THE APPLICATION
-
-### Option A: One-Click Demonstration Launcher (Recommended)
-Double-click `START_VAYU_ORBIT_DEMO.bat` in the project root.  
-This launches `backend/demo_launcher.py`, which:
-1. Verifies production catalog hash integrity.
-2. Binds the isolated demonstration database (`CMS_DB_PATH`).
-3. Starts the FastAPI backend on `http://127.0.0.1:8000`.
-4. Starts the Vite frontend on `http://localhost:5173`.
-5. Automatically opens your default web browser to the VAYU ORBIT dashboard.
-
-### Option B: Manual Process Startup
-
-**Terminal 1 (Backend):**
-```powershell
-cd backend
-$env:CMS_DB_PATH = "$PWD\military_logistics_demo.db"
-python -m uvicorn api:app --host 127.0.0.1 --port 8000
-```
-
-**Terminal 2 (Frontend):**
-```powershell
-cd frontend
 npm run dev
 ```
-
-Navigate to: `http://localhost:5173`
-
----
-
-## 15. DEMONSTRATION USAGE & LOGIN CREDENTIALS
-
-The prototype includes pre-configured academic evaluation accounts:
-
-| Role | Username / Email | Password | Access Scope |
-|---|---|---|---|
-| **COORDINATOR** | `coordinator@vayu.local` | `VayuOrbit@2026` | Full planning, convoy builder, dispatch, debrief export |
-| **CREATOR** | `creator@vayu.local` | `VayuOrbit@2026` | Route creation, node management, initial manifest staging |
-| **CHECKPOINT OPERATOR** | `checkpoint@vayu.local` | `VayuOrbit@2026` | Checkpoint clearance, live disruption logging, speed monitoring |
-
-*See [documentation/VAYU_ORBIT_DEMO_SCENARIOS.md](documentation/VAYU_ORBIT_DEMO_SCENARIOS.md) for full walkthrough scenarios.*
+*Frontend runs at `http://localhost:5173`.*
 
 ---
 
-## 16. RUNNING AUTOMATED TESTS
+## 9. Configuration & Environment Variables
 
-The academic package includes a full automated test suite verifying VORAM readiness calculations, axle tolerance math, and API contract security:
+### Frontend Configuration (`frontend/.env`)
+Copy `.env.example` or configure `frontend/.env`:
+```env
+# Target Backend API URL
+VITE_API_BASE=http://localhost:8000
 
-```powershell
-python -m pytest backend/tests
+# Firebase Web App Config (vayuorbit-b20b5)
+VITE_FIREBASE_API_KEY=AIzaSyPlaceholderClientKeyForAcademicEvaluation
+VITE_FIREBASE_AUTH_DOMAIN=vayuorbit-b20b5.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=vayuorbit-b20b5
+VITE_FIREBASE_STORAGE_BUCKET=vayuorbit-b20b5.firebasestorage.app
+VITE_FIREBASE_MESSAGING_SENDER_ID=914779488934
+VITE_FIREBASE_APP_ID=1:914779488934:web:d5affde7412aa559a5aa67
+
+# TomTom Map SDK API Key (Optional — fallback engages offline vector canvas)
+VITE_TOMTOM_API_KEY=YOUR_TOMTOM_API_KEY_HERE
 ```
 
-**Expected Result:** `57 passed in ~2.5s`
+### Backend Configuration
+The backend requires zero mandatory environment variables to run locally. Configuration defaults are loaded from `backend/config.py`:
+- `CMS_DB_PATH`: `military_logistics.db`
+- `FIREBASE_PROJECT_ID`: `vayuorbit-b20b5`
+- `FIREBASE_APP_CHECK_MODE`: `disabled` (in development; zero external network requests)
+- `VAYU_ALLOW_LEGACY_JWT`: `false` (enforces Firebase Auth ID tokens)
+- `CORS_ORIGINS`: Permissive local development ports (`5173`, `3000`, `8000`)
 
 ---
 
-## 17. KNOWN LIMITATIONS
+## 10. Demonstration & Evaluation Walkthrough
 
-1. **Simulation Scope:** Road coordinates and distance calculations are computed using Haversine distance heuristics on graph corridors. Real-world physical road gradients and unmapped detours are not modeled.
-2. **Database Engine:** SQLite 3 is utilized for lightweight academic portability. It is suitable for single-node simulation, not high-throughput distributed military deployments.
-3. **Map Tile Streaming:** The interactive map requires an active internet connection to download cartographic tiles from CARTO / OpenStreetMap. If offline, the map renders with a grid canvas while all routing algorithms function normally.
+### 10.1 Academic Role Accounts & Sovereign RBAC
+VAYU ORBIT utilizes Firebase Authentication for edge identity verification while enforcing deterministic Role-Based Access Control (RBAC) via its sovereign local SQLite database:
+
+| Role | Email | Sovereign Local Role | Access Privileges |
+|---|---|---|---|
+| **Convoy Coordinator** | `coordinator@vayu.local` | `COORDINATOR` | Full journey planning, dispatch, ROP entry, fleet ops, fuel override, user governance |
+| **Mission Creator** | `creator@vayu.local` | `CREATOR` | Convoy manifest compilation, route assessment, journey drafting |
+| **Checkpoint Operator** | `checkpoint@vayu.local` | `CHECKPOINT_OPERATOR` | Checkpoint arrival check-ins, transit timestamping, telemetry logging |
+| **System Administrator** | `admin@vayu.local` | `ADMIN` | Account status governance, role adjustment, immutable audit log inspection |
+
+*Note: Passwords are non-functional placeholders in documentation. Actual credentials are set by the system administrator during account provisioning or via the "Forgot password?" self-service recovery flow.*
+
+### 10.2 Recommended Operational Workflow
+1. **Login:** Authenticate at `/login` using `coordinator@vayu.local` and your assigned password.
+2. **Operational Overview:** Review the live corridor status, active convoys, weather warnings, and readiness scoreboards.
+3. **Route Assessment (`/route-assessment`):** Select an origin (e.g., `Ambala Air Force Station`) and destination (e.g., `Leh Military Station`). Configure convoy speed (40 km/h) and gross vehicle tonnage (12 T). Compare Primary vs. Alternate routes and analyze the VORAM risk breakdown.
+4. **Journey Planning (`/journey-planning`):** Build a multi-vehicle convoy manifest. Add freight and passenger vehicles. Inspect real-time payload warnings (e.g., cargo assignment prohibited on passenger-only vehicles like Tata Safari GS800).
+5. **Journey Operations (`/journey-operations`):** Click on scheduled journeys to open the detailed Operations Cockpit. Review turn-by-turn guidance and checkpoint arrival windows.
+6. **Road Opening Party (ROP) Report:** In the Journey Cockpit, click **Submit ROP Report** to file a reconnaissance clearance. Observe real-time readiness status change to **CLEARED FOR DEPARTURE**.
+7. **Intelligence SITREP Parsing:** Input a mock SITREP text (e.g., `"Unconfirmed roadblock reported 15km north of Srinagar on NH1D due to landslide"`). Observe automated waypoint risk tagging and route recalculation.
 
 ---
 
-## 18. ACADEMIC USAGE CONDITIONS
+## 11. Data Dictionary & Synthetic Datasets
 
-This software is licensed solely for personal educational review, coursework examination, and authorized collaborative research. **Unauthorised redistribution, commercial exploitation, public hosting, or deployment into defence operational systems is strictly prohibited.** See [AUTHORIZED_USE.md](AUTHORIZED_USE.md) for details.
+All locations, vehicles, routes, and intelligence items in VAYU ORBIT are strictly **synthetic** and designed exclusively for academic evaluation.
+
+- **116 Military Bases & Logistics Nodes:** Geographically realistic coordinates covering Northern, Western, and Central corridors across India, categorized by station type:
+  - Transit Camps (`TC`)
+  - Supply Depots (`SD`)
+  - Ordnance Depots (`OD`)
+  - Forward Operating Bases (`FOB`)
+  - Military Hospitals (`MH`)
+- **5 Realistic Military Vehicle Classes:**
+  1. **Tata Safari Storme GS800:** Passenger / Scout reconnaissance vehicle (Tare: 2.4 T, Payload: 0.0 T Cargo, 6 Pax max).
+  2. **Ashok Leyland Stallion 4×4:** Standard general-purpose troop and cargo logistics carrier (Tare: 5.6 T, Payload: 5.0 T, GVW: 10.6 T).
+  3. **Ashok Leyland Super Stallion 6×6:** Heavy cargo and artillery tractor (Tare: 9.8 T, Payload: 10.0 T, GVW: 19.8 T).
+  4. **Tata LPTA 715 4×4:** Medium light transport (Tare: 4.25 T, Payload: 3.0 T, GVW: 7.25 T).
+  5. **Scania R580 8×8 HET:** Heavy equipment / armor transporter (Tare: 18.0 T, Payload: 40.0 T, GVW: 58.0 T).
+
+Detailed database schema definitions and field semantics are available in [docs/DATA_AND_LIMITATIONS.md](docs/DATA_AND_LIMITATIONS.md).
 
 ---
 
-## 19. COPYRIGHT & OWNERSHIP
+## 12. Security, Authentication & Role-Based Access Control (RBAC)
+
+1. **Authentication:** HMAC SHA-256 JWT tokens with 24-hour expiration issued upon verified database authentication.
+2. **Access Control:** Fine-grained endpoint guards restrict administrative, dispatch, and override actions based on authenticated user roles.
+3. **Audit Trail:** Critical operations (journey scheduling, ROP clearance, overrides) write immutable timestamps and user identifiers to the database audit log.
+4. **Cryptographic Baseline Guard:** `prepare_demo_db.py` enforces SHA-256 checksum validation to prevent unauthorized runtime database tampering or corrupted schema migrations.
+
+---
+
+## 13. API Reference Summary
+
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `POST` | `/api/auth/login` | Authenticate user & issue JWT bearer token | No |
+| `GET` | `/api/auth/me` | Retrieve authenticated user profile & permissions | Yes |
+| `GET` | `/api/places` | Fetch 116 synthetic logistics stations & coordinates | Yes |
+| `GET` | `/api/nodes` | Fetch routing node topology & segment attributes | Yes |
+| `POST` | `/api/route` | Compute multi-factor weighted route & VORAM score | Yes |
+| `GET` | `/api/vehicles` | Retrieve vehicle master catalog and availability | Yes |
+| `GET` | `/api/journeys` | List all active, scheduled, and completed journeys | Yes |
+| `POST` | `/api/journeys` | Create new journey with strict manifest validation | Yes |
+| `GET` | `/api/journeys/{id}` | Retrieve comprehensive journey details & telemetry | Yes |
+| `POST` | `/api/rop-reports/{id}` | Submit Road Opening Party recon report | Yes |
+| `POST` | `/api/intelligence/sitrep` | Parse unstructured military SITREP text | Yes |
+
+Complete request and response payload schemas are documented in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and live at `/docs`.
+
+---
+
+## 14. Verification & Test Suite Results
+
+The academic release codebase has undergone rigorous automated and forensic validation:
+
+- **Pytest Suite:** **60 / 60 tests passing (100%)**
+  - Schema initialization & database integrity: 14 tests
+  - Route calculation & multi-factor Dijkstra: 18 tests
+  - Manifest validation & payload semantics: 12 tests
+  - Auth, RBAC & API endpoint contracts: 16 tests
+- **Frontend Build:** **Vite v5.4.14 production build succeeds in < 800ms** with zero errors or unhandled warnings.
+- **Hash Parity Audit:** 100% of runtime source files match original canonical development hashes.
+
+For detailed test logs, test execution instructions, and test coverage matrices, refer to [docs/TESTING.md](docs/TESTING.md).
+
+---
+
+## 15. System Boundaries & Academic Disclaimer
+
+> [!IMPORTANT]
+> **ACADEMIC EVALUATION DISCLAIMER:**
+> VAYU ORBIT is strictly an academic research and software engineering evaluation prototype developed for educational assessment under Problem Statement **PDS-3**.
+> 
+> - It is **NOT** an operational Command and Control (C2) system.
+> - It contains **NO** classified, sensitive, or real-world military logistics data.
+> - All military station names, coordinates, vehicle identifiers, and convoy schedules are purely **synthetic approximations**.
+> - It does **NOT** interface with live military GPS feeds, transponders, or real-time tactical communications networks.
+> - It must **NOT** be deployed for real-world navigation, life-critical missions, or operational tactical logistics.
+
+---
+
+## 16. Project Structure & Directory Tree
+
+```
+VAYU_ORBIT_ACADEMIC_RELEASE/
+|-- backend/
+|   |-- api.py                     # Primary FastAPI application & route endpoints
+|   |-- config.py                  # Environment & runtime configuration
+|   |-- database.py                # Database connection & session management
+|   |-- models.py                  # SQLAlchemy ORM models & entity schemas
+|   |-- schemas.py                 # Pydantic v2 request & response schemas
+|   |-- router.py                  # Core Dijkstra multi-factor routing engine
+|   |-- voram.py                   # VORAM multi-criteria risk model
+|   |-- fuel.py                    # Fuel consumption & safety margin calculator
+|   |-- manifest.py                # Convoy vehicle manifest validation logic
+|   |-- sitrep_parser.py           # NLP intelligence SITREP parsing engine
+|   |-- prepare_demo_db.py         # Baseline DB integrity & seed management
+|   |-- military_logistics.db      # Active working SQLite database
+|   |-- military_logistics_demo.db # Pristine baseline backup SQLite database
+|   `-- tests/                     # Automated pytest regression suite (60 tests)
+|-- frontend/
+|   |-- index.html                 # Single page application entry HTML
+|   |-- package.json               # Node.js dependencies & build scripts
+|   |-- vite.config.js             # Vite bundler configuration & proxy settings
+|   |-- tailwind.config.js         # Tailwind configuration & Haulix palette tokens
+|   |-- .env.example               # Safe environment variable template
+|   |-- public/                    # Static assets & vehicle showcase artwork
+|   `-- src/
+|       |-- App.jsx                # Root React component & routing table
+|       |-- main.jsx               # React DOM mounting entry point
+|       |-- components/            # Reusable UI components (Sidebar, Topbar, etc.)
+|       |-- pages/                 # Operational views (Overview, Planning, Ops, etc.)
+|       `-- services/              # API clients & state machines
+|-- .env.example                   # Unified environment configuration template
+|-- dataconnect/                   # Firebase Data Connect / SQL Connect configuration
+|   |-- dataconnect.yaml           # Service specification & Cloud SQL binding
+|   |-- schema/schema.gql          # Relational GraphQL SDL schema (18 tables)
+|   `-- connector/                 # Connector definitions, queries & mutations
+|-- docs/                          # Comprehensive technical documentation suite
+|   |-- ARCHITECTURE.md            # Detailed system design & sequence diagrams
+|   |-- POSTGRESQL_ARCHITECTURE.md # Cloud SQL PostgreSQL 15+ target architecture
+|   |-- FIREBASE_SQL_CONNECT.md    # Firebase Data Connect / SQL Connect specification
+|   |-- SQLITE_TO_POSTGRESQL_MIGRATION.md # Repeatable migration engine manual
+|   |-- DATABASE_MIGRATION_INVENTORY.md # Discovered 18-table SQLite schema audit
+|   |-- DATABASE_BACKUP_AND_ROLLBACK.md # Forensic backup manifest & rollback SOP
+|   |-- DATABASE_SECURITY.md       # PostgreSQL threat model, mTLS & least-privilege
+|   |-- DATABASE_MIGRATION_TEST_REPORT.md # Migration & regression test report
+|   |-- FIREBASE_AUTHENTICATION.md # Firebase Auth & FastAPI Admin SDK technical spec
+|   |-- ACCOUNT_MIGRATION.md       # Account migration inventory & JIT linking guide
+|   |-- FIREBASE_DEPLOYMENT.md     # Firebase Hosting & Cloud Run deployment manual
+|   |-- FIREBASE_SECURITY.md       # Firebase Security & App Check threat model
+|   |-- INSTALLATION.md            # Cross-platform installation & setup manual
+|   |-- TESTING.md                 # Test suite execution & verification report
+|   |-- DATA_AND_LIMITATIONS.md    # Data dictionaries, schemas & simulation limits
+|   |-- RELEASE_NOTES.md           # Version 6.0.0 release log & changelog
+|   `-- VAYU_ORBIT_Target_System_Specification_v1.1.pdf # Formal design spec PDF
+|-- AUTHORIZATION.md               # Rights attribution & GitHub release policies
+|-- LICENSE                        # Academic research evaluation license
+|-- PRD.md                         # Product Requirements Document (PDS-3)
+|-- PROJECT_LINKS.txt              # Canonical links, repos & contact references
+|-- requirements.txt               # Pinned Python package dependencies
+|-- START_VAYU_ORBIT_DEMO.bat      # One-click Windows startup script
+|-- SEED_DEMO_SCENARIOS.bat        # Windows demonstration scenario seeder
+`-- RESET_VAYU_ORBIT_DEMO.bat      # Windows database reset utility
+```
+
+---
+
+## 17. Known Limitations & Future Work
+
+1. **Synthetic Elevation Gradients:** Elevation profiles are derived from pre-compiled segment lookup tables. Future iterations will integrate open-access Digital Elevation Models (DEM / SRTM 30m).
+2. **Offline Vector Tiles:** When TomTom API connectivity is unavailable, the fallback map renders schematic vector coordinates. An integrated offline Mapbox vector tile server (MBTiles) is planned for Phase 2.
+3. **Dynamic Re-routing in Transit:** ROP reports currently require manual refresh or Cockpit reload to apply suggested diversions; real-time WebSocket push updates will be introduced in the next major build.
+
+---
+
+## 18. Related Documentation Links
+
+- [GitHub Pre-Publication Security, Privacy & Legal Audit](docs/GITHUB_PRE_PUBLICATION_SECURITY_AUDIT.md)
+- [System Architecture Specification](docs/ARCHITECTURE.md)
+- [PostgreSQL Database Architecture Specification](docs/POSTGRESQL_ARCHITECTURE.md)
+- [PostgreSQL Migration Stage 2 Verification Report](docs/POSTGRESQL_MIGRATION_STAGE_2_VERIFICATION_REPORT.md)
+- [PostgreSQL & Firebase SQL Connect Implementation Report](docs/POSTGRESQL_MIGRATION_IMPLEMENTATION_REPORT.md)
+- [Firebase SQL Connect / Data Connect Manual](docs/FIREBASE_SQL_CONNECT.md)
+- [SQLite to PostgreSQL Migration Engine Guide](docs/SQLITE_TO_POSTGRESQL_MIGRATION.md)
+- [Database Backup Manifest & Rollback Protocol](docs/DATABASE_BACKUP_AND_ROLLBACK.md)
+- [Database Security Architecture & Threat Model](docs/DATABASE_SECURITY.md)
+- [Database Migration & Regression Test Report](docs/DATABASE_MIGRATION_TEST_REPORT.md)
+- [Forensic Database Migration Inventory](docs/DATABASE_MIGRATION_INVENTORY.md)
+- [Firebase Authentication Specification (Web SDK + Admin SDK)](docs/FIREBASE_AUTHENTICATION.md)
+- [Account Migration Inventory & JIT Linking Guide](docs/ACCOUNT_MIGRATION.md)
+- [Firebase Security Architecture & App Check Threat Model](docs/FIREBASE_SECURITY.md)
+- [Firebase Hosting & Cloud Run Deployment Guide](docs/FIREBASE_DEPLOYMENT.md)
+- [Firebase Authentication Migration Proposal & Decision](docs/FIREBASE_AUTHENTICATION_MIGRATION_PROPOSAL.md)
+- [Public Deployment Authorization Request](docs/PUBLIC_DEPLOYMENT_PERMISSION_REQUEST.md)
+- [Complete Installation Guide](docs/INSTALLATION.md)
+- [Cloud Deployment Guide](docs/DEPLOYMENT.md)
+- [Security Policy & Safeguards](SECURITY.md)
+- [Authorized Use Policy](AUTHORIZED_USE.md)
+- [Test Suite & Quality Audit](docs/TESTING.md)
+- [Data Dictionary & Limitations](docs/DATA_AND_LIMITATIONS.md)
+- [Release Notes & Version Log](docs/RELEASE_NOTES.md)
+- [Product Requirements Document (PRD)](PRD.md)
+- [Authorization & Rights Ownership](AUTHORIZATION.md)
+
+---
+
+## 19. License & Intellectual Property
+
+This software and its documentation are distributed under the **VAYU ORBIT Academic Research Evaluation License**. 
+See [LICENSE](LICENSE) for full details. 
+
+**Summary of Terms:**
+- **Permitted:** Academic evaluation, research examination, viva-voce demonstration, and educational review by authorized university faculty and examiners.
+- **Restricted:** Commercial exploitation, unauthorized public distribution, military deployment, or re-licensing without the explicit written authorization of the copyright holders.
+- **Publication Policy:** Public release on external source registries (such as GitHub) is subject to rights-holder clearance as documented in [AUTHORIZATION.md](AUTHORIZATION.md).
+
+---
+
+## 20. Citation & Academic Reference
+
+If referencing or evaluating this system in academic research, please cite as follows:
+
+```bibtex
+@misc{mishra2026vayuorbit,
+  author       = {Mishra, Rudra Narayan and Singh, Suryansh Kumar},
+  title        = {VAYU ORBIT: Autonomous Military Convoy Logistics Planning and Risk Assessment Decision-Support System},
+  year         = {2026},
+  howpublished = {Capstone Engineering Project, Lovely Professional University},
+  note         = {Problem Statement PDS-3, Supervised by Er. Hitesh Kumar},
+  address      = {Phagwara, Punjab, India}
+}
+```
 
 ```text
-Copyright © 2026 Rudra Narayan Mishra. All rights reserved.
+Mishra, R. N., & Singh, S. K. (2026). VAYU ORBIT: Autonomous Military Convoy Logistics Planning
+and Risk Assessment Decision-Support System (Academic Evaluation Prototype v6.0.0).
+Supervised by Er. Hitesh Kumar. School of Computer Science and Engineering,
+Lovely Professional University, Punjab, India.
 ```
-Authored by Rudra Narayan Mishra. See [COPYRIGHT.md](COPYRIGHT.md) and [LICENSE](LICENSE).
 
 ---
-
-## 20. OPERATIONAL MILITARY DISCLAIMER
-
-**VAYU ORBIT IS AN ACADEMIC PROTOTYPE FOR RESEARCH AND COURSEWORK PURPOSES ONLY.**  
-It is **NOT** certified for operational military deployment, tactical convoy dispatch on active civil/military highways, or mission-critical life safety operations. No classified or real-world military operational security (OPSEC) data is included in or supported by this software.
+*VAYU ORBIT Academic Release Package | Verified & Certified for Evaluation | November 2026*

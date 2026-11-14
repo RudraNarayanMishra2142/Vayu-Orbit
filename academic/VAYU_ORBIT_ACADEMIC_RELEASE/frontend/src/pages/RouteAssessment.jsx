@@ -587,7 +587,7 @@ function RouteAssessment({ mission, setMission, setPage }) {
               <div className="kicker" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                 <Scale size={11} /> Governing Axle Load
               </div>
-              <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 18, fontWeight: 700, color: 'var(--warn)', marginTop: 2 }}>
+              <div style={{ fontFamily: "'Share Tech Mono', monospace", fontSize: 18, fontWeight: 700, color: 'var(--warn)', marginTop: 2 }}>
                 {maxTons.toFixed(1)} t
               </div>
               {convoyConstraints?.governingWeightVehicle && (
@@ -602,7 +602,7 @@ function RouteAssessment({ mission, setMission, setPage }) {
               <div className="kicker" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                 <Gauge size={11} /> Convoy Speed Ceiling
               </div>
-              <div style={{ fontFamily: "'Orbitron',monospace", fontSize: 18, fontWeight: 700, color: 'var(--ok)', marginTop: 2 }}>
+              <div style={{ fontFamily: "'Share Tech Mono', monospace", fontSize: 18, fontWeight: 700, color: 'var(--ok)', marginTop: 2 }}>
                 {speedKmh} km/h
               </div>
               {convoyConstraints?.governingSpeedVehicle && (
@@ -620,7 +620,7 @@ function RouteAssessment({ mission, setMission, setPage }) {
                 </div>
                 <div
                   style={{
-                    fontFamily: "'Orbitron',monospace",
+                    fontFamily: "'Share Tech Mono', monospace",
                     fontSize: 18,
                     fontWeight: 700,
                     color: bridgeAnalysis.status === 'CLEAR' ? 'var(--ok)' : bridgeAnalysis.status === 'MARGINAL' ? 'var(--warn)' : 'var(--bad)',
@@ -741,7 +741,7 @@ function RouteAssessment({ mission, setMission, setPage }) {
                         ) : (
                           <span
                             style={{
-                              fontFamily: "'Orbitron',monospace",
+                              fontFamily: "'Share Tech Mono', monospace",
                               fontSize: 12,
                               fontWeight: 700,
                               color: riskColor(r.risk_score)
@@ -1153,7 +1153,7 @@ function RouteAssessment({ mission, setMission, setPage }) {
                 ) : (
                   <span
                     style={{
-                      fontFamily: "'Orbitron', monospace",
+                      fontFamily: "'Share Tech Mono', monospace",
                       fontSize: 13,
                       fontWeight: 700,
                       color: riskColor(selected?.risk_score)

@@ -555,7 +555,6 @@ function Convoy({ setPage, mission, setMission }) {
                   Catalog: <b style={{ color: 'var(--accent)' }}>{totalModelsCount}</b> models &nbsp;·&nbsp; <b style={{ color: 'var(--warn)' }}>{totalUnitsCount}</b> active units
                 </div>
               </div>
-              <span className="pill ok">STANDARDIZED</span>
             </div>
 
             {/* Search Input */}
@@ -623,11 +622,11 @@ function Convoy({ setPage, mission, setMission }) {
                           </span>
                           {v.is_vip === 1 && (
                             <span className="vayu-vip-chip">
-                              <Star size={10} fill="var(--warn)" /> VIP ESCORT
+                              <Star size={9} fill="var(--warn)" /> VIP
                             </span>
                           )}
                         </div>
-                        <span className="mono" style={{ fontSize: 10, color: 'var(--text-subtle)' }}>
+                        <span className="mono" style={{ fontSize: 9.5, color: 'var(--text-subtle)' }}>
                           {v.vehicle_id}
                         </span>
                       </div>
@@ -652,7 +651,7 @@ function Convoy({ setPage, mission, setMission }) {
                         {/* Specs Grid */}
                         <div className="vayu-specs-matrix">
                           <div className="vayu-spec-col">
-                            <span className="vayu-spec-label">GVW</span>
+                            <span className="vayu-spec-label">Base Mass</span>
                             <span className="vayu-spec-val" style={{ color: 'var(--warn)' }}>
                               {v.gvw_tons} t
                             </span>
@@ -660,70 +659,42 @@ function Convoy({ setPage, mission, setMission }) {
                           <div className="vayu-spec-col">
                             <span className="vayu-spec-label">Speed</span>
                             <span className="vayu-spec-val" style={{ color: 'var(--ok)' }}>
-                              {v.max_speed_kmh} <span style={{ fontSize: 9 }}>km/h</span>
+                              {v.max_speed_kmh} <span style={{ fontSize: 8.5 }}>km/h</span>
                             </span>
                           </div>
                           <div className="vayu-spec-col">
                             <span className="vayu-spec-label">Range</span>
                             <span className="vayu-spec-val">
-                              {v.operational_range_km} <span style={{ fontSize: 9 }}>km</span>
+                              {v.operational_range_km} <span style={{ fontSize: 8.5 }}>km</span>
                             </span>
                           </div>
                         </div>
 
-                        {/* Capacity & Role Verification */}
-                        <div className="vayu-cap-row">
-                          {/* Passengers */}
+                        {/* Compact Capacity & Pool Row */}
+                        <div className="vayu-cap-summary">
                           {(v.role_category === 'PASSENGER' || v.role_category === 'DUAL' || v.role_category === 'SPECIALIST') && (
-                            <div className="vayu-cap-item">
-                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                                <Users size={12} color="var(--accent)" />
-                                {v.rated_passenger_capacity ? `${v.rated_passenger_capacity} Personnel` : 'Crew Only'}
-                              </span>
+                            <span className="vayu-cap-chip" title={`${v.rated_passenger_capacity || 'Crew'} pax (${v.capacity_source_note || 'Standard'})`}>
+                              <Users size={11} color="var(--accent)" /> {v.rated_passenger_capacity ? `${v.rated_passenger_capacity}p` : 'Crew'}
                               {v.passenger_capacity_verified ? (
-                                <span className="vayu-verified-pill" title={v.capacity_source_note}>
-                                  <CheckCircle2 size={9} /> Verified
-                                </span>
+                                <span className="vayu-verified-dot" title="Verified source">✓</span>
                               ) : (
-                                <span className="vayu-unverified-pill" title={v.capacity_source_note}>
-                                  <Info size={9} /> Estimated
-                                </span>
+                                <span className="vayu-unverified-dot" title="Estimated source">est</span>
                               )}
-                            </div>
-                          )}
-
-                          {/* Cargo */}
-                          {(v.role_category === 'CARGO' || v.role_category === 'DUAL') && (
-                            <div className="vayu-cap-item">
-                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                                <Package size={12} color="var(--warn)" />
-                                {v.rated_payload_tons ? `${v.rated_payload_tons} t Payload` : 'Standard'}
-                              </span>
-                              {v.payload_capacity_verified ? (
-                                <span className="vayu-verified-pill" title={v.capacity_source_note}>
-                                  <CheckCircle2 size={9} /> Verified
-                                </span>
-                              ) : (
-                                <span className="vayu-unverified-pill" title={v.capacity_source_note}>
-                                  <Info size={9} /> Estimated
-                                </span>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Role Tag & Physical Units Info */}
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 10, marginTop: 2, color: 'var(--text-subtle)' }}>
-                            <span style={{ fontFamily: "'Share Tech Mono', monospace" }}>
-                              ROLE: <b style={{ color: 'var(--text-main)' }}>{v.role_category}</b>
                             </span>
-                            {modelUnits.length > 0 ? (
-                              <span style={{ color: 'var(--warn)', fontFamily: "'Share Tech Mono', monospace" }}>
-                                {modelUnits.length} Physical {modelUnits.length === 1 ? 'Unit' : 'Units'}
-                              </span>
-                            ) : (
-                              <span style={{ fontFamily: "'Share Tech Mono', monospace" }}>Model Template</span>
-                            )}
-                          </div>
+                          )}
+                          {(v.role_category === 'CARGO' || v.role_category === 'DUAL') && (
+                            <span className="vayu-cap-chip" title={`${v.rated_payload_tons || '0'} t payload (${v.capacity_source_note || 'Standard'})`}>
+                              <Package size={11} color="var(--warn)" /> {v.rated_payload_tons ? `${v.rated_payload_tons}t` : '0t'}
+                              {v.payload_capacity_verified ? (
+                                <span className="vayu-verified-dot" title="Verified source">✓</span>
+                              ) : (
+                                <span className="vayu-unverified-dot" title="Estimated source">est</span>
+                              )}
+                            </span>
+                          )}
+                          <span className="vayu-pool-status">
+                            {modelUnits.length > 0 ? `${modelUnits.length} in pool` : 'Template'}
+                          </span>
                         </div>
 
                         {/* Card Action */}
@@ -732,8 +703,8 @@ function Convoy({ setPage, mission, setMission }) {
                             className={`vayu-add-btn${addedCount > 0 ? ' added' : ''}`}
                             onClick={() => addVehicle(v)}
                           >
-                            <Plus size={13} />
-                            {addedCount > 0 ? `Add Another (${addedCount} in Convoy)` : 'Add to Convoy'}
+                            <Plus size={12} />
+                            {addedCount > 0 ? `Add Another (${addedCount})` : 'Add to Convoy'}
                           </button>
                         </div>
                       </div>
@@ -751,7 +722,7 @@ function Convoy({ setPage, mission, setMission }) {
             <div>
               <h3 style={{ marginBottom: 2 }}>Convoy Manifest</h3>
               <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                Drag handle to reorder positions or use accessible buttons.
+                Reorder march sequence or adjust asset loads.
               </div>
             </div>
             <span className="mono" style={{ fontSize: 13, color: 'var(--warn)', fontWeight: 700 }}>
@@ -777,7 +748,7 @@ function Convoy({ setPage, mission, setMission }) {
                 <div className="kicker">Heaviest Axle</div>
                 <div
                   style={{
-                    fontFamily: "'Orbitron', monospace",
+                    fontFamily: "'Share Tech Mono', monospace",
                     fontSize: 14,
                     fontWeight: 700,
                     color: heaviestVehicle > 40 ? 'var(--bad)' : 'var(--warn)'
@@ -789,21 +760,21 @@ function Convoy({ setPage, mission, setMission }) {
 
               <div>
                 <div className="kicker">Convoy Speed</div>
-                <div style={{ fontFamily: "'Orbitron', monospace", fontSize: 14, fontWeight: 700, color: 'var(--ok)' }}>
+                <div style={{ fontFamily: "'Share Tech Mono', monospace", fontSize: 14, fontWeight: 700, color: 'var(--ok)' }}>
                   {slowestSpeed} <span style={{ fontSize: 10 }}>km/h</span>
                 </div>
               </div>
 
               <div>
                 <div className="kicker">Personnel</div>
-                <div style={{ fontFamily: "'Orbitron', monospace", fontSize: 14, fontWeight: 700, color: 'var(--accent)' }}>
+                <div style={{ fontFamily: "'Share Tech Mono', monospace", fontSize: 14, fontWeight: 700, color: 'var(--accent)' }}>
                   {totalOccupants} <span style={{ fontSize: 10 }}>pax</span>
                 </div>
               </div>
 
               <div>
                 <div className="kicker">Cargo (t)</div>
-                <div style={{ fontFamily: "'Orbitron', monospace", fontSize: 14, fontWeight: 700, color: 'var(--text-main)' }}>
+                <div style={{ fontFamily: "'Share Tech Mono', monospace", fontSize: 14, fontWeight: 700, color: 'var(--text-main)' }}>
                   {totalCargo.toFixed(1)} t
                 </div>
               </div>

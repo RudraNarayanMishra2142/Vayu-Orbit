@@ -1,4 +1,4 @@
-import os, sqlite3, uuid, json, math, hashlib
+import os, sqlite3, uuid, json, math, hashlib, logging
 from typing import Optional, Any, Dict, List
 from datetime import datetime, timezone
 from contextlib import contextmanager
@@ -13,73 +13,273 @@ import revision_service
 import report_service
 import report_pdf
 
+logger = logging.getLogger("vayu_orbit.api")
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-def get_db_path(): return os.environ.get('CMS_DB_PATH', os.path.join(BASE_DIR, 'military_logistics.db'))
+
+def get_db_path():
+    return os.environ.get('CMS_DB_PATH', os.environ.get('DATABASE_PATH', os.path.join(BASE_DIR, 'military_logistics.db')))
+
+def ensure_database_file():
+    """
+    Idempotent, atomic initialization of the operational database.
+    Guarantees existing database contents are never overwritten.
+    Safe against concurrent initialization across multiple workers or processes.
+    """
+    db_path = os.path.abspath(get_db_path())
+    if os.path.exists(db_path) and os.path.getsize(db_path) > 0:
+        return db_path
+
+    import shutil, tempfile
+    demo_src = os.path.join(BASE_DIR, 'military_logistics_demo.db')
+    local_src = os.path.join(BASE_DIR, 'military_logistics.db')
+    src = local_src if os.path.exists(local_src) else demo_src
+
+    if not os.path.exists(src) or os.path.abspath(src) == db_path:
+        return db_path
+
+    target_dir = os.path.dirname(db_path)
+    if target_dir:
+        os.makedirs(target_dir, exist_ok=True)
+
+    temp_path = None
+    try:
+        fd, temp_path = tempfile.mkstemp(dir=target_dir, prefix="db_init_", suffix=".tmp")
+        os.close(fd)
+        shutil.copy2(src, temp_path)
+
+        if not os.path.exists(db_path) or os.path.getsize(db_path) == 0:
+            os.replace(temp_path, db_path)
+            logger.info("Successfully initialized operational database at %s from %s", db_path, src)
+        else:
+            logger.info("Database at %s already initialized by concurrent process", db_path)
+    except Exception as e:
+        logger.error("Database initialization failed: %s", e)
+        raise
+    finally:
+        if temp_path and os.path.exists(temp_path):
+            try:
+                os.remove(temp_path)
+            except OSError:
+                pass
+    return db_path
+
+ensure_database_file()
 DB_PATH = get_db_path()
 
 app = FastAPI(title='CMS Simulation API', version='6.0.0')
 
+# Environment-driven CORS configuration
+DEFAULT_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5174",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://vayuorbit-b20b5.web.app",
+    "https://vayuorbit-b20b5.firebaseapp.com"
+]
+is_production = os.environ.get("APP_ENV", os.environ.get("ENVIRONMENT", "")).lower() == "production"
+env_cors = os.environ.get("CORS_ORIGINS", os.environ.get("ALLOWED_ORIGINS", "")).strip()
+
+if env_cors:
+    parsed = [o.strip() for o in env_cors.split(",") if o.strip()]
+    if "*" in parsed:
+        logger.warning("CORS security warning: Wildcard origin '*' detected in configuration. Stripping '*' because credentials are enabled.")
+        parsed = [o for o in parsed if o != "*"]
+    allowed_origins = parsed
+    if not is_production:
+        for d in DEFAULT_ORIGINS:
+            if d not in allowed_origins:
+                allowed_origins.append(d)
+else:
+    if is_production:
+        # In production with empty CORS_ORIGINS, default to the official Firebase Hosting domains
+        allowed_origins = [
+            "https://vayuorbit-b20b5.web.app",
+            "https://vayuorbit-b20b5.firebaseapp.com"
+        ]
+    else:
+        allowed_origins = DEFAULT_ORIGINS
+
 # Restrict CORS explicitly to authorized frontend origins with credentials
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:5174",
-        "http://127.0.0.1:5174"
-    ],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
 )
 
+# --- Firebase Admin SDK & App Check Integration ---
+FIREBASE_PROJECT_ID = os.environ.get("FIREBASE_PROJECT_ID", "vayuorbit-b20b5")
+FIREBASE_ADMIN_AVAILABLE = False
+
+try:
+    import firebase_admin
+    from firebase_admin import app_check, credentials
+    if not firebase_admin._apps:
+        cred = None
+        cred_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+        if cred_path and os.path.exists(cred_path):
+            cred = credentials.Certificate(cred_path)
+        firebase_admin.initialize_app(cred, options={'projectId': FIREBASE_PROJECT_ID})
+        logger.info("Initialized Firebase Admin SDK for project: %s", FIREBASE_PROJECT_ID)
+    FIREBASE_ADMIN_AVAILABLE = True
+except Exception as e:
+    logger.warning("Firebase Admin SDK initialization deferred: %s", e)
+
+@app.middleware("http")
+async def app_check_middleware(request: Request, call_next):
+    # Always exempt public health probes, preflight OPTIONS requests, and API documentation
+    exempt_paths = {"/healthz", "/health", "/docs", "/openapi.json", "/redoc"}
+    if request.method == "OPTIONS" or request.url.path in exempt_paths:
+        return await call_next(request)
+
+    current_mode = os.environ.get("FIREBASE_APP_CHECK_MODE", os.environ.get("APP_CHECK_MODE", "audit")).lower()
+    if current_mode == "disabled":
+        return await call_next(request)
+
+    token = request.headers.get("X-Firebase-AppCheck")
+
+    if not token:
+        if current_mode == "enforced":
+            logger.warning("App Check [ENFORCED] rejected request to %s: missing X-Firebase-AppCheck header", request.url.path)
+            from fastapi.responses import JSONResponse
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "Unauthorized: Missing Firebase App Check token."}
+            )
+        else:
+            return await call_next(request)
+
+    # Validate token using Firebase Admin SDK
+    is_valid = False
+    if FIREBASE_ADMIN_AVAILABLE:
+        try:
+            decoded_token = app_check.verify_token(token)
+            request.state.app_check = decoded_token
+            is_valid = True
+        except Exception as e:
+            logger.warning("App Check verification failed for %s: %s", request.url.path, e)
+    else:
+        logger.warning("Firebase Admin SDK not available to verify App Check token")
+
+    if not is_valid and current_mode == "enforced":
+        from fastapi.responses import JSONResponse
+        return JSONResponse(
+            status_code=401,
+            content={"detail": "Unauthorized: Invalid or expired Firebase App Check token."}
+        )
+
+    return await call_next(request)
+
 def now(): return datetime.now(timezone.utc).isoformat()
 
+# Import database adapter supporting both SQLite and PostgreSQL / Firebase SQL Connect
+import db_adapter
+from db_adapter import (
+    db_transaction,
+    conn,
+    query,
+    execsql,
+    get_provider,
+    adapt_sql,
+)
+
 def _configure_connection(c):
-    c.row_factory = sqlite3.Row
-    c.execute('PRAGMA journal_mode=WAL;')
-    c.execute('PRAGMA busy_timeout=5000;')
-    c.execute('PRAGMA synchronous=NORMAL;')
+    if hasattr(c, "row_factory"):
+        c.row_factory = sqlite3.Row
+        c.execute('PRAGMA journal_mode=WAL;')
+        c.execute('PRAGMA busy_timeout=5000;')
+        c.execute('PRAGMA synchronous=NORMAL;')
     return c
 
-@contextmanager
-def db_transaction():
-    c = sqlite3.connect(get_db_path(), timeout=5.0, isolation_level=None)
-    _configure_connection(c)
-    c.execute('BEGIN IMMEDIATE;')
+def migrate_additive_schema(c):
+    """
+    Applies non-destructive additive operational schemas.
+    Safe to execute repeatedly on all databases including military_logistics.db.
+    """
+    c.executescript('''
+    CREATE TABLE IF NOT EXISTS rop_reports (
+      report_id TEXT PRIMARY KEY,
+      journey_id TEXT NOT NULL,
+      route_version TEXT NOT NULL,
+      reporting_user_id TEXT NOT NULL,
+      reporting_user_email TEXT NOT NULL,
+      reporting_user_role TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'SUBMITTED',
+      observation_period_start TEXT,
+      observation_period_end TEXT,
+      parameters_json TEXT NOT NULL DEFAULT '{}',
+      reviewed_by TEXT DEFAULT NULL,
+      reviewed_at TEXT DEFAULT NULL,
+      review_decision_notes TEXT DEFAULT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS journey_sensitivity_advisory (
+      journey_id TEXT PRIMARY KEY,
+      sensitivity_level TEXT NOT NULL DEFAULT 'STANDARD',
+      escort_requirement_state TEXT NOT NULL DEFAULT 'REVIEW_REQUIRED',
+      policy_reference TEXT NOT NULL DEFAULT 'DEF-LOG-SOP-2026/SEC-04',
+      support_notes TEXT DEFAULT '',
+      reviewed_by TEXT DEFAULT NULL,
+      reviewed_at TEXT DEFAULT NULL,
+      confirmed_by TEXT DEFAULT NULL,
+      confirmed_at TEXT DEFAULT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS journey_readiness_overrides (
+      journey_id TEXT PRIMARY KEY,
+      override_type TEXT NOT NULL DEFAULT 'READINESS_ADVISORY_OVERRIDE',
+      reason TEXT NOT NULL,
+      authorized_by TEXT NOT NULL,
+      authorized_role TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS staged_sessions (
+      staged_id TEXT PRIMARY KEY,
+      owner_user_id TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    ''')
+
+def migrate_users_firebase_schema(c):
     try:
-        yield c
-        c.execute('COMMIT;')
-    except Exception:
-        c.execute('ROLLBACK;')
-        raise
-    finally:
-        c.close()
-
-def conn():
-    c = sqlite3.connect(get_db_path(), timeout=5.0)
-    return _configure_connection(c)
-
-def query(sql, args=(), one=False):
-    c = conn()
-    try:
-        rows = c.execute(sql, args).fetchall()
-        data = [dict(r) for r in rows]
-        return data[0] if one and data else (None if one else data)
-    finally:
-        c.close()
-
-def execsql(sql, args=()):
-    with db_transaction() as c:
-        c.execute(sql, args)
+        cols = [r[1] for r in c.execute("PRAGMA table_info(users)").fetchall()]
+        if "firebase_uid" not in cols:
+            c.execute("ALTER TABLE users ADD COLUMN firebase_uid TEXT DEFAULT NULL")
+        if "status" not in cols:
+            c.execute("ALTER TABLE users ADD COLUMN status TEXT NOT NULL DEFAULT 'ACTIVE'")
+        if "created_at" not in cols:
+            c.execute("ALTER TABLE users ADD COLUMN created_at TEXT DEFAULT NULL")
+        if "updated_at" not in cols:
+            c.execute("ALTER TABLE users ADD COLUMN updated_at TEXT DEFAULT NULL")
+        c.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_firebase_uid ON users(firebase_uid) WHERE firebase_uid IS NOT NULL")
+        c.execute("CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)")
+    except Exception as e:
+        logger.warning("Users Firebase schema migration notice: %s", e)
 
 def init_schema():
-    db_path = get_db_path()
-    # Guard: Never modify baseline production database directly
-    if os.path.basename(db_path) == 'military_logistics.db':
+    if get_provider() == "postgresql":
+        logger.info("Database provider is PostgreSQL: skipping local SQLite schema initialization.")
         return
+    db_path = get_db_path()
     c = conn()
     try:
+        # Non-destructive additive operational schemas must always run across all databases
+        migrate_additive_schema(c)
+        audit_service.migrate_audit_schema(c)
+        migrate_users_firebase_schema(c)
+        c.commit()
+
+        # Guard: Never modify baseline production database data directly
+        if os.path.basename(db_path) == 'military_logistics.db':
+            return
         c.executescript('''
         CREATE TABLE IF NOT EXISTS places (
           place_id TEXT PRIMARY KEY, place_name TEXT NOT NULL, category TEXT NOT NULL,
@@ -278,25 +478,31 @@ def init_schema():
             for r in rows:
                 pid = 'PLC-' + r[0]
                 c.execute("""
-                    INSERT OR IGNORE INTO places (
+                    INSERT INTO places (
                         place_id, place_name, category, region, lat, lon,
                         status, access_class, max_vehicle_tons, clearance_m,
                         support_services, description, created_at, updated_at
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT (place_id) DO NOTHING
                 """, (pid, r[1], r[2], r[3], r[4], r[5], 'ACTIVE', 'SIMULATION', r[6], 4.0, 'Fuel, maintenance', 'Seeded simulation place from project dataset', now(), now()))
         
-        # Seed default users if they do not exist
+        # Seed or configure default evaluation users
+        init_demo_pw = os.environ.get("INITIAL_DEMO_PASSWORD", None)
         default_users = [
-            ("USR-CREATOR-01", "creator@vayu.local", "VayuOrbit@2026", "CREATOR"),
-            ("USR-CHECKPOINT-01", "checkpoint@vayu.local", "VayuOrbit@2026", "CHECKPOINT_OPERATOR"),
-            ("USR-COORDINATOR-01", "coordinator@vayu.local", "VayuOrbit@2026", "COORDINATOR")
+            ("USR-CREATOR-01", "creator@vayu.local", "CREATOR"),
+            ("USR-CHECKPOINT-01", "checkpoint@vayu.local", "CHECKPOINT_OPERATOR"),
+            ("USR-COORDINATOR-01", "coordinator@vayu.local", "COORDINATOR")
         ]
-        for uid, email, password, role in default_users:
-            existing = c.execute("SELECT 1 FROM users WHERE email=?", (email,)).fetchone()
+        for uid, email, role in default_users:
+            existing = c.execute("SELECT password_hash FROM users WHERE email=?", (email,)).fetchone()
             if not existing:
-                pw_hash = auth.hash_password(password)
+                effective_pwd = init_demo_pw or str(uuid.uuid4())
+                pw_hash = auth.hash_password(effective_pwd)
                 c.execute("INSERT INTO users (id, email, password_hash, role) VALUES (?, ?, ?, ?)",
                           (uid, email, pw_hash, role))
+            elif init_demo_pw:
+                pw_hash = auth.hash_password(init_demo_pw)
+                c.execute("UPDATE users SET password_hash=? WHERE email=?", (pw_hash, email))
         
         audit_service.migrate_audit_schema(c)
         c.commit()
@@ -311,17 +517,80 @@ def get_current_user(request: Request) -> dict:
     if auth_header and auth_header.startswith("Bearer "):
         token = auth_header[7:].strip()
     if not token:
-        token = request.cookies.get(auth.COOKIE_NAME)
+        token = request.cookies.get(auth.COOKIE_NAME) or request.cookies.get(auth.LEGACY_COOKIE_NAME)
     if not token:
         raise HTTPException(status_code=401, detail="Unauthorized: Authentication required.")
-    payload = auth.decode_access_token(token)
-    if not payload:
-        raise HTTPException(status_code=401, detail="Unauthorized: Invalid or expired token.")
-    return {
-        "id": payload.get("sub"),
-        "email": payload.get("email"),
-        "role": payload.get("role")
-    }
+
+    # 1. Primary: Verify Firebase ID token
+    fb_payload = auth.verify_firebase_id_token(token)
+    if fb_payload:
+        fb_uid = fb_payload.get("uid") or fb_payload.get("sub")
+        email = (fb_payload.get("email") or "").strip().lower()
+
+        user = query("SELECT * FROM users WHERE firebase_uid=?", [fb_uid], one=True)
+        if not user and email:
+            user = query("SELECT * FROM users WHERE lower(email)=?", [email], one=True)
+            if user:
+                try:
+                    with db_transaction() as c:
+                        c.execute("UPDATE users SET firebase_uid=?, updated_at=datetime('now') WHERE id=?", [fb_uid, user["id"]])
+                    user["firebase_uid"] = fb_uid
+                    logger.info("Automatically linked Firebase UID '%s' to operator '%s' (%s)", fb_uid, user["id"], email)
+                except Exception as link_err:
+                    logger.warning("Could not persist auto-link for user %s: %s", user["id"], link_err)
+
+        if not user:
+            raise HTTPException(
+                status_code=401,
+                detail="Unauthorized: Operator identity not recognized or not provisioned in VAYU system."
+            )
+
+        status = (user.get("status") or "ACTIVE").upper()
+        if status == "DISABLED":
+            raise HTTPException(status_code=403, detail="Forbidden: Operator account is deactivated. Contact an administrator.")
+        if status == "PENDING_ROLE":
+            raise HTTPException(status_code=403, detail="Forbidden: Operator account is pending operational role assignment by an administrator.")
+
+        return {
+            "id": user["id"],
+            "email": user["email"],
+            "role": user["role"],
+            "status": status,
+            "firebase_uid": user.get("firebase_uid") or fb_uid
+        }
+
+    # 2. Controlled Legacy JWT Transition
+    legacy_payload = auth.verify_legacy_jwt(token)
+    if legacy_payload:
+        user_id = legacy_payload.get("sub")
+        email = (legacy_payload.get("email") or "").strip().lower()
+        user = query("SELECT * FROM users WHERE id=? OR lower(email)=?", [user_id, email], one=True)
+        if not user:
+            if os.environ.get("APP_ENV") != "production" and legacy_payload.get("role"):
+                return {
+                    "id": user_id,
+                    "email": email,
+                    "role": legacy_payload.get("role"),
+                    "status": "ACTIVE",
+                    "legacy_transition": True
+                }
+            raise HTTPException(status_code=401, detail="Unauthorized: Legacy operator account not found.")
+
+        status = (user.get("status") or "ACTIVE").upper()
+        if status == "DISABLED":
+            raise HTTPException(status_code=403, detail="Forbidden: Operator account is deactivated.")
+        if status == "PENDING_ROLE":
+            raise HTTPException(status_code=403, detail="Forbidden: Operator account pending role assignment.")
+
+        return {
+            "id": user["id"],
+            "email": user["email"],
+            "role": user["role"],
+            "status": status,
+            "legacy_transition": True
+        }
+
+    raise HTTPException(status_code=401, detail="Unauthorized: Invalid or expired Firebase ID token.")
 
 def require_role(allowed_roles: list[str]):
     def role_checker(user: dict = Depends(get_current_user)) -> dict:
@@ -341,38 +610,113 @@ ROLE_COORDINATOR = ["COORDINATOR", "ADMIN"]
 
 # --- Authentication Routes ---
 class LoginRequest(BaseModel):
-    email: str
-    password: str
+    email: Optional[str] = None
+    password: Optional[str] = None
+    id_token: Optional[str] = None
 
-@app.post("/api/auth/login")
-def login(req: LoginRequest, response: Response):
-    email_clean = req.email.strip().lower()
-    user = query("SELECT * FROM users WHERE email=?", [email_clean], one=True)
-    if not user or not auth.verify_password(req.password, user["password_hash"]):
-        raise HTTPException(status_code=401, detail="Invalid email or password.")
-    token = auth.create_access_token(user["id"], user["email"], user["role"])
+class SessionEstablishRequest(BaseModel):
+    id_token: str
+
+@app.post("/api/auth/session")
+def establish_session(req: SessionEstablishRequest, response: Response):
+    """Establishes a backend session from an authenticated Firebase ID token."""
+    fb_payload = auth.verify_firebase_id_token(req.id_token)
+    if not fb_payload:
+        raise HTTPException(status_code=401, detail="Invalid or expired Firebase ID token.")
+    fb_uid = fb_payload.get("uid") or fb_payload.get("sub")
+    email = (fb_payload.get("email") or "").strip().lower()
+
+    user = query("SELECT * FROM users WHERE firebase_uid=?", [fb_uid], one=True)
+    if not user and email:
+        user = query("SELECT * FROM users WHERE lower(email)=?", [email], one=True)
+        if user:
+            try:
+                with db_transaction() as c:
+                    c.execute("UPDATE users SET firebase_uid=?, updated_at=datetime('now') WHERE id=?", [fb_uid, user["id"]])
+                user["firebase_uid"] = fb_uid
+            except Exception as e:
+                logger.warning("Could not persist auto-link: %s", e)
+
+    if not user:
+        raise HTTPException(status_code=401, detail="Unauthorized: Operator identity not recognized or not provisioned.")
+
+    status = (user.get("status") or "ACTIVE").upper()
+    if status == "DISABLED":
+        raise HTTPException(status_code=403, detail="Forbidden: Operator account is deactivated.")
+    if status == "PENDING_ROLE":
+        raise HTTPException(status_code=403, detail="Forbidden: Operator account pending role assignment.")
+
     response.set_cookie(
         key=auth.COOKIE_NAME,
-        value=token,
+        value=req.id_token,
         httponly=True,
         samesite="lax",
         secure=False,
-        max_age=24 * 3600
+        max_age=3600
     )
     return {
         "ok": True,
         "user": {
             "id": user["id"],
             "email": user["email"],
-            "role": user["role"]
+            "role": user["role"],
+            "status": status,
+            "firebase_uid": user.get("firebase_uid") or fb_uid
         },
-        "token": token
+        "token": req.id_token
     }
+
+@app.post("/api/auth/login")
+def login(req: LoginRequest, response: Response):
+    # Branch 1: Firebase ID Token
+    if req.id_token:
+        return establish_session(SessionEstablishRequest(id_token=req.id_token), response)
+
+    # Branch 2: Legacy Email + Password Transition
+    if req.email and req.password:
+        email_clean = req.email.strip().lower()
+        user = query("SELECT * FROM users WHERE lower(email)=?", [email_clean], one=True)
+        if not user or not auth.verify_password(req.password, user["password_hash"]):
+            raise HTTPException(status_code=401, detail="Invalid email or password.")
+
+        status = (user.get("status") or "ACTIVE").upper()
+        if status == "DISABLED":
+            raise HTTPException(status_code=403, detail="Forbidden: Operator account is deactivated.")
+        if status == "PENDING_ROLE":
+            raise HTTPException(status_code=403, detail="Forbidden: Operator account pending role assignment.")
+
+        token = auth.create_access_token(user["id"], user["email"], user["role"])
+        response.set_cookie(
+            key=auth.COOKIE_NAME,
+            value=token,
+            httponly=True,
+            samesite="lax",
+            secure=False,
+            max_age=24 * 3600
+        )
+        return {
+            "ok": True,
+            "user": {
+                "id": user["id"],
+                "email": user["email"],
+                "role": user["role"],
+                "status": status,
+                "firebase_uid": user.get("firebase_uid")
+            },
+            "token": token
+        }
+
+    raise HTTPException(status_code=400, detail="Invalid login payload. Provide id_token or email/password.")
 
 @app.post("/api/auth/logout")
 def logout(response: Response):
     response.delete_cookie(
         key=auth.COOKIE_NAME,
+        httponly=True,
+        samesite="lax"
+    )
+    response.delete_cookie(
+        key=auth.LEGACY_COOKIE_NAME,
         httponly=True,
         samesite="lax"
     )
@@ -382,12 +726,65 @@ def logout(response: Response):
 def get_me(current_user: dict = Depends(get_current_user)):
     return {"ok": True, "user": current_user}
 
+# --- Account Management & Role Governance (Restricted to Coordinators/Admins) ---
+@app.get("/api/auth/users")
+def list_operator_accounts(_user: dict = Depends(require_role(ROLE_COORDINATOR))):
+    """Lists registered operator accounts, their roles, status, and Firebase link state."""
+    users = query("SELECT id, email, role, status, firebase_uid, created_at, updated_at FROM users ORDER BY id ASC")
+    return {"ok": True, "users": users}
+
+class UpdateRolePayload(BaseModel):
+    role: str
+
+@app.put("/api/auth/users/{user_id}/role")
+def update_operator_role(user_id: str, payload: UpdateRolePayload, _user: dict = Depends(require_role(ROLE_COORDINATOR))):
+    new_role = payload.role.strip().upper()
+    if new_role not in ROLE_ALL:
+        raise HTTPException(status_code=400, detail=f"Invalid role '{new_role}'. Must be one of: {', '.join(ROLE_ALL)}")
+    user = query("SELECT * FROM users WHERE id=?", [user_id], one=True)
+    if not user:
+        raise HTTPException(status_code=404, detail=f"User '{user_id}' not found.")
+    with db_transaction() as c:
+        c.execute("UPDATE users SET role=?, updated_at=datetime('now') WHERE id=?", [new_role, user_id])
+        audit_service.record_audit(c, "UPDATE_USER_ROLE", "USER", user_id, f"Role changed from {user.get('role')} to {new_role} by {_user.get('id')}", user=_user)
+    return {"ok": True, "message": f"Updated role for {user_id} to {new_role}", "user_id": user_id, "role": new_role}
+
+class UpdateStatusPayload(BaseModel):
+    status: str
+
+@app.put("/api/auth/users/{user_id}/status")
+def update_operator_status(user_id: str, payload: UpdateStatusPayload, _user: dict = Depends(require_role(ROLE_COORDINATOR))):
+    new_status = payload.status.strip().upper()
+    if new_status not in ["ACTIVE", "DISABLED", "PENDING_ROLE"]:
+        raise HTTPException(status_code=400, detail="Invalid status. Must be ACTIVE, DISABLED, or PENDING_ROLE.")
+    user = query("SELECT * FROM users WHERE id=?", [user_id], one=True)
+    if not user:
+        raise HTTPException(status_code=404, detail=f"User '{user_id}' not found.")
+    with db_transaction() as c:
+        c.execute("UPDATE users SET status=?, updated_at=datetime('now') WHERE id=?", [new_status, user_id])
+        audit_service.record_audit(c, "UPDATE_USER_STATUS", "USER", user_id, f"Status changed from {user.get('status')} to {new_status} by {_user.get('id')}", user=_user)
+    return {"ok": True, "message": f"Updated status for {user_id} to {new_status}", "user_id": user_id, "status": new_status}
+
 # --- Core Business Endpoints Wrapped with RBAC ---
 def node_map(): return {n['node_id']:n for n in query('SELECT * FROM military_nodes')}
 
 @app.get('/')
 def root(_user: dict = Depends(require_role(ROLE_ALL))):
     return {'name':'CMS Simulation','version':'6.0.0','docs':'/docs'}
+
+@app.get('/healthz')
+@app.get('/health')
+def healthz():
+    """
+    Unauthenticated liveness probe for cloud platform health checkers (Render, Railway, Kubernetes).
+    Returns 200 OK without requiring JWT authentication.
+    """
+    return {
+        'status': 'HEALTHY',
+        'timestamp': now(),
+        'service': 'vayu-orbit-backend',
+        'version': '6.0.0'
+    }
 
 @app.get('/api/health')
 def health(_user: dict = Depends(require_role(ROLE_ALL))):
@@ -1044,9 +1441,6 @@ def get_staged_session_owner(staged_id: str) -> Optional[str]:
     return None
 
 def save_staged_session(staged_id: str, owner_id: str):
-    db_path = get_db_path()
-    if os.path.basename(db_path) == 'military_logistics.db':
-        return
     with db_transaction() as c:
         c.execute('''
             CREATE TABLE IF NOT EXISTS staged_sessions (
@@ -1660,18 +2054,30 @@ def _fetch_journey(journey_id: str):
     ovr = query('SELECT * FROM journey_fuel_overrides WHERE journey_id=?', [journey_id], True)
     row['fuel_override'] = dict(ovr) if ovr else None
 
-    adv = query('SELECT * FROM journey_sensitivity_advisory WHERE journey_id=?', [journey_id], True)
-    row['sensitivity_advisory'] = dict(adv) if adv else None
+    try:
+        adv = query('SELECT * FROM journey_sensitivity_advisory WHERE journey_id=?', [journey_id], True)
+        row['sensitivity_advisory'] = dict(adv) if adv else None
+    except sqlite3.OperationalError as e:
+        logger.warning(f"Could not query journey_sensitivity_advisory for {journey_id}: {e}")
+        row['sensitivity_advisory'] = None
 
-    rep = query('SELECT * FROM rop_reports WHERE journey_id=? ORDER BY created_at DESC LIMIT 1', [journey_id], True)
-    if rep:
-        rep['parameters'] = _safe_json(rep.get('parameters_json'), {})
-        row['rop_report'] = dict(rep)
-    else:
+    try:
+        rep = query('SELECT * FROM rop_reports WHERE journey_id=? ORDER BY created_at DESC LIMIT 1', [journey_id], True)
+        if rep:
+            rep['parameters'] = _safe_json(rep.get('parameters_json'), {})
+            row['rop_report'] = dict(rep)
+        else:
+            row['rop_report'] = None
+    except sqlite3.OperationalError as e:
+        logger.warning(f"Could not query rop_reports for {journey_id}: {e}")
         row['rop_report'] = None
 
-    r_ovr = query('SELECT * FROM journey_readiness_overrides WHERE journey_id=?', [journey_id], True)
-    row['readiness_override'] = dict(r_ovr) if r_ovr else None
+    try:
+        r_ovr = query('SELECT * FROM journey_readiness_overrides WHERE journey_id=?', [journey_id], True)
+        row['readiness_override'] = dict(r_ovr) if r_ovr else None
+    except sqlite3.OperationalError as e:
+        logger.warning(f"Could not query journey_readiness_overrides for {journey_id}: {e}")
+        row['readiness_override'] = None
     return row
 
 @app.post('/api/journeys')
@@ -2592,10 +2998,10 @@ def ack_incident(journey_id: str, incident_id: str, req: Optional[AckRequest] = 
 
     with db_transaction() as c:
         if target == 'OPERATOR':
-            c.execute('UPDATE incidents SET operator_ack=?, handling_state=CASE WHEN handling_state="OPEN" THEN "ACKNOWLEDGED" ELSE handling_state END, updated_at=? WHERE id=?',
+            c.execute("UPDATE incidents SET operator_ack=?, handling_state=CASE WHEN handling_state='OPEN' THEN 'ACKNOWLEDGED' ELSE handling_state END, updated_at=? WHERE id=?",
                       [ack_data, t, incident_id])
         else:
-            c.execute('UPDATE incidents SET checkpoint_ack=?, handling_state=CASE WHEN handling_state="OPEN" THEN "ACKNOWLEDGED" ELSE handling_state END, updated_at=? WHERE id=?',
+            c.execute("UPDATE incidents SET checkpoint_ack=?, handling_state=CASE WHEN handling_state='OPEN' THEN 'ACKNOWLEDGED' ELSE handling_state END, updated_at=? WHERE id=?",
                       [ack_data, t, incident_id])
         c.execute('INSERT INTO audit_log(action,object_type,object_id,details,created_at) VALUES(?,?,?,?,?)',
                   ['INCIDENT_ACK', 'INCIDENT', incident_id,
@@ -2681,7 +3087,8 @@ def get_journey_report_pdf(journey_id: str, _user: dict = Depends(require_role(R
     try:
         pdf_bytes = report_pdf.generate_journey_debrief_pdf(display_model, logo_path=logo_path)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to generate journey debrief PDF: {str(e)}")
+        logger.error("Failed to generate journey debrief PDF for journey '%s': %s", journey_id, e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to generate journey debrief PDF. Check system logs for details.")
 
     safe_id = "".join(c for c in journey_id if c.isalnum() or c in ("-", "_")) or "report"
     filename = f"VAYU-ORBIT-Journey-Debrief-{safe_id}.pdf"
@@ -2784,11 +3191,7 @@ def apply_fuel_detour(journey_id: str, req: FuelDetourPreviewRequest, _user: dic
 def analytics(_user: dict = Depends(require_role(ROLE_ALL))):
     try:
         def _tbl_exists(name: str) -> bool:
-            try:
-                r = query("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (name,), one=True)
-                return bool(r)
-            except Exception:
-                return False
+            return db_adapter.table_exists(name)
 
         # 1. Journeys status breakdown
         j_total = 0
@@ -2931,7 +3334,8 @@ def analytics(_user: dict = Depends(require_role(ROLE_ALL))):
             'generated_at': now()
         }
     except Exception as e:
-        raise HTTPException(500, f'Unable to compute analytics data: {str(e)}')
+        logger.error("Unable to compute analytics data: %s", e, exc_info=True)
+        raise HTTPException(500, "Unable to compute analytics data. Check system logs for details.")
 
 @app.get('/api/audit')
 def audit(_user: dict = Depends(require_role(ROLE_COORDINATOR))):

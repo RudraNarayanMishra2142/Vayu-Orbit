@@ -1,11 +1,35 @@
+import { getAppCheckToken } from './firebase';
+import { getFirebaseIdToken, loginWithFirebase, logoutFromFirebase } from './firebaseAuth';
+
+let apiConfigError = null;
+
 const getApiBase = () => {
-  if (import.meta.env.VITE_API_BASE) return import.meta.env.VITE_API_BASE;
-  if (typeof window !== 'undefined' && window.location) {
-    const host = window.location.hostname || '127.0.0.1';
-    return `http://${host}:8000`;
+  const envBase = (
+    import.meta.env.VITE_API_BASE ||
+    import.meta.env.VITE_API_URL ||
+    import.meta.env.VITE_API_BASE_URL ||
+    ''
+  ).trim().replace(/\/+$/, '');
+
+  if (envBase) {
+    return envBase;
   }
-  return 'http://127.0.0.1:8000';
+
+  // Preserve development localhost behaviour
+  if (typeof window !== 'undefined' && window.location) {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0') {
+      return `http://${host}:8000`;
+    }
+  } else if (!import.meta.env.PROD) {
+    return 'http://127.0.0.1:8000';
+  }
+
+  // In production, missing API configuration must NOT silently fall back to window.location.origin
+  apiConfigError = 'Production API configuration missing: VITE_API_BASE is not configured. Set VITE_API_BASE in your environment to point to your backend service (e.g. https://your-backend.onrender.com).';
+  return '';
 };
+
 const BASE = getApiBase();
 
 const TOKEN_KEY = 'vayu_auth_token';
@@ -42,22 +66,77 @@ function parseErrorDetail(d, status) {
 }
 
 async function req(path, opts = {}) {
-  const token = getAuthToken();
+  if (apiConfigError) {
+    throw new Error(apiConfigError);
+  }
+  let token = null;
+  try {
+    token = await getFirebaseIdToken();
+  } catch {}
+  if (!token) {
+    token = getAuthToken();
+  }
+
+  let appCheckToken = null;
+  try {
+    appCheckToken = await getAppCheckToken();
+  } catch {}
+
   const headers = {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(appCheckToken ? { 'X-Firebase-AppCheck': appCheckToken } : {}),
     ...(opts.headers || {})
   };
-  const r = await fetch(BASE + path, {
-    credentials: 'include',
-    headers,
-    ...opts
-  });
+  let r;
+  try {
+    r = await fetch(BASE + path, {
+      credentials: 'include',
+      headers,
+      ...opts
+    });
+  } catch (netErr) {
+    throw new Error(`Unable to connect to backend server at ${BASE}. Ensure the backend service is running.`);
+  }
   let d = null;
   try {
     d = await r.json();
   } catch {}
-  if (r.status === 401 && path !== '/api/auth/login') {
+
+  // If request failed specifically due to an expired App Check token, retry once with forceRefresh
+  if (r.status === 401 && typeof d?.detail === 'string' && d.detail.includes('App Check') && !opts._retriedAppCheck) {
+    try {
+      const refreshedToken = await getAppCheckToken(true);
+      return await req(path, {
+        ...opts,
+        _retriedAppCheck: true,
+        headers: {
+          ...(opts.headers || {}),
+          ...(refreshedToken ? { 'X-Firebase-AppCheck': refreshedToken } : {})
+        }
+      });
+    } catch {}
+  }
+
+  // If request failed with 401 on an authenticated endpoint, try refreshing Firebase ID token once
+  if (r.status === 401 && !opts._retriedAuth && path !== '/api/auth/login' && path !== '/api/auth/session') {
+    try {
+      const refreshedAuthToken = await getFirebaseIdToken(true);
+      if (refreshedAuthToken) {
+        setAuthToken(refreshedAuthToken);
+        return await req(path, {
+          ...opts,
+          _retriedAuth: true,
+          headers: {
+            ...(opts.headers || {}),
+            Authorization: `Bearer ${refreshedAuthToken}`
+          }
+        });
+      }
+    } catch {}
+  }
+
+  if (r.status === 401 && path !== '/api/auth/login' && path !== '/api/auth/session' && !(typeof d?.detail === 'string' && d.detail.includes('App Check'))) {
     setAuthToken(null);
     if (typeof unauthorizedHandler === 'function') {
       try {
@@ -78,9 +157,34 @@ async function req(path, opts = {}) {
 }
 
 export const api = {
-  base: BASE,
-  // Phase 1 Authentication
+  base: BASE || (apiConfigError ? 'UNCONFIGURED_PRODUCTION_API' : 'http://127.0.0.1:8000'),
+  configError: apiConfigError,
+  // Firebase Authentication
   login: async (email, password) => {
+    let idToken = null;
+    try {
+      const fbAuthResult = await loginWithFirebase(email, password);
+      idToken = fbAuthResult.idToken;
+    } catch (fbErr) {
+      console.warn('Firebase client login attempt:', fbErr.message);
+      // If error is invalid credentials or disabled, rethrow to show accurate user feedback
+      if (fbErr.code && fbErr.code !== 'auth/network-request-failed') {
+        throw fbErr;
+      }
+    }
+
+    if (idToken) {
+      const sessionRes = await req('/api/auth/session', {
+        method: 'POST',
+        body: JSON.stringify({ id_token: idToken })
+      });
+      if (sessionRes?.token) {
+        setAuthToken(sessionRes.token);
+      }
+      return sessionRes;
+    }
+
+    // Direct / Transition Fallback
     const res = await req('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
     if (res?.token) {
       setAuthToken(res.token);
@@ -89,12 +193,18 @@ export const api = {
   },
   logout: async () => {
     try {
+      await logoutFromFirebase();
+    } catch {}
+    try {
       await req('/api/auth/logout', { method: 'POST' });
     } finally {
       setAuthToken(null);
     }
   },
   getMe: () => req('/api/auth/me'),
+  listUsers: () => req('/api/auth/users'),
+  updateUserRole: (userId, role) => req(`/api/auth/users/${userId}/role`, { method: 'PUT', body: JSON.stringify({ role }) }),
+  updateUserStatus: (userId, status) => req(`/api/auth/users/${userId}/status`, { method: 'PUT', body: JSON.stringify({ status }) }),
 
   // Existing Endpoints
   health: () => req('/api/health'),
@@ -120,9 +230,18 @@ export const api = {
   journey: id => req(`/api/journeys/${id}`),
   journeyReport: id => req(`/api/journeys/${id}/report`),
   downloadJourneyReportPdf: async (journeyId) => {
+    if (apiConfigError) {
+      throw new Error(apiConfigError);
+    }
     const token = getAuthToken();
+    let appCheckToken = null;
+    try {
+      appCheckToken = await getAppCheckToken();
+    } catch {}
+
     const headers = {
-      ...(token ? { Authorization: `Bearer ${token}` } : {})
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(appCheckToken ? { 'X-Firebase-AppCheck': appCheckToken } : {})
     };
     const r = await fetch(`${BASE}/api/journeys/${journeyId}/report/pdf`, {
       credentials: 'include',

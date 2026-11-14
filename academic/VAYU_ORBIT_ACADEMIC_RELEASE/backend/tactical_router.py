@@ -16,25 +16,41 @@ def haversine_distance(lat1, lon1, lat2, lon2):
 def build_dynamic_graph(db_path="military_logistics.db", max_edge_distance_km=800, disruptions=None):
     """Build the simulated corridor graph and optionally apply Phase 3 disruptions."""
     disruptions = disruptions or []
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
+    rows = None
     try:
-        rows = conn.execute("""
-            SELECT m.node_id, m.installation_name, m.node_type, m.lat, m.lon,
-                   m.delay_multiplier, m.clearance_time_mins,
-                   CASE WHEN p.place_id IS NOT NULL THEN p.max_vehicle_tons ELSE m.max_axle_load_tons END AS max_axle_load_tons,
-                   p.status AS place_status
-            FROM military_nodes m
-            LEFT JOIN places p ON (p.place_id = m.node_id OR p.place_id = 'PLC-' || m.node_id)
-        """).fetchall()
+        import db_adapter
+        if db_adapter.get_provider() == "postgresql":
+            rows = db_adapter.query("""
+                SELECT m.node_id, m.installation_name, m.node_type, m.lat, m.lon,
+                       m.delay_multiplier, m.clearance_time_mins,
+                       CASE WHEN p.place_id IS NOT NULL THEN p.max_vehicle_tons ELSE m.max_axle_load_tons END AS max_axle_load_tons,
+                       p.status AS place_status
+                FROM military_nodes m
+                LEFT JOIN places p ON (p.place_id = m.node_id OR p.place_id = 'PLC-' || m.node_id)
+            """)
     except Exception:
-        rows = conn.execute("""
-            SELECT node_id, installation_name, node_type, lat, lon,
-                   delay_multiplier, clearance_time_mins, max_axle_load_tons,
-                   NULL AS place_status
-            FROM military_nodes
-        """).fetchall()
-    conn.close()
+        pass
+
+    if rows is None:
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+        try:
+            rows = conn.execute("""
+                SELECT m.node_id, m.installation_name, m.node_type, m.lat, m.lon,
+                       m.delay_multiplier, m.clearance_time_mins,
+                       CASE WHEN p.place_id IS NOT NULL THEN p.max_vehicle_tons ELSE m.max_axle_load_tons END AS max_axle_load_tons,
+                       p.status AS place_status
+                FROM military_nodes m
+                LEFT JOIN places p ON (p.place_id = m.node_id OR p.place_id = 'PLC-' || m.node_id)
+            """).fetchall()
+        except Exception:
+            rows = conn.execute("""
+                SELECT node_id, installation_name, node_type, lat, lon,
+                       delay_multiplier, clearance_time_mins, max_axle_load_tons,
+                       NULL AS place_status
+                FROM military_nodes
+            """).fetchall()
+        conn.close()
 
     graph = nx.Graph()
     for row in rows:

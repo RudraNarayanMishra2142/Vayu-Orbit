@@ -1,0 +1,18 @@
+# ==============================================================================
+# VAYU ORBIT — Firebase Data Connect Mutations
+# Security Policy: ZERO CLIENT-FACING MUTATIONS
+# ==============================================================================
+# In accordance with VAYU ORBIT Security Directive VAYU-DOC-SEC-006:
+# Direct client mutations to the PostgreSQL database via Firebase Data Connect
+# are strictly prohibited.
+#
+# All operational mutations (including convoy creation, manifest editing,
+# fuel overrides, ROP report submission/approval, status changes, and audit
+# logging) MUST be mediated exclusively by the FastAPI backend application layer.
+#
+# This ensures that:
+# 1. Deterministic RBAC (ROLE_COORDINATOR, ROLE_OPS, etc.) cannot be bypassed.
+# 2. Fuel departure safety gates cannot be circumvented.
+# 3. ROP report review separation of duties is strictly enforced.
+# 4. Audit entries are authenticated server-side and cannot be spoofed.
+# ==============================================================================

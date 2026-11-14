@@ -421,7 +421,7 @@ export default function Overview({ setPage, currentUser, onOpenJourney }) {
     <Shell
       title="Operations Overview"
       eyebrow="COMMAND & CONTROL"
-      description="Real-time strategic convoy tracking, journey lifecycle pipeline, and fleet readiness."
+      description="Strategic convoy tracking, lifecycle pipeline, and fleet readiness."
       actions={primaryActions}
     >
       <div className="overview-container">
@@ -440,7 +440,7 @@ export default function Overview({ setPage, currentUser, onOpenJourney }) {
                 {metricsState.loading ? '—' : totalJourneys.toLocaleString()}
               </span>
               <span className="overview-kpi-sub">
-                <span>Logged system movements</span>
+                <span>All movements</span>
               </span>
             </div>
           </div>
@@ -458,7 +458,7 @@ export default function Overview({ setPage, currentUser, onOpenJourney }) {
                 {metricsState.loading ? '—' : activeJourneys.toLocaleString()}
               </span>
               <span className="overview-kpi-sub">
-                <span>In transit on tactical corridors</span>
+                <span>In transit</span>
               </span>
             </div>
           </div>
@@ -476,7 +476,7 @@ export default function Overview({ setPage, currentUser, onOpenJourney }) {
                 {metricsState.loading ? '—' : scheduledJourneys.toLocaleString()}
               </span>
               <span className="overview-kpi-sub">
-                <span>Awaiting departure window</span>
+                <span>Awaiting departure</span>
               </span>
             </div>
           </div>
@@ -494,7 +494,7 @@ export default function Overview({ setPage, currentUser, onOpenJourney }) {
                 {metricsState.loading ? '—' : completedJourneys.toLocaleString()}
               </span>
               <span className="overview-kpi-sub">
-                <span>Successfully debriefed</span>
+                <span>Debriefed</span>
               </span>
             </div>
           </div>

@@ -46,6 +46,12 @@ def migrate_audit_schema(c: sqlite3.Cursor) -> None:
     and creates the structured audit_events table if missing.
     Does not delete, recreate, or alter existing data.
     """
+    try:
+        import db_adapter
+        if db_adapter.get_provider() == "postgresql":
+            return
+    except Exception:
+        pass
     # 1. Inspect existing columns in audit_log
     res = c.execute("PRAGMA table_info(audit_log);")
     existing_cols = {row[1] for row in res.fetchall()}

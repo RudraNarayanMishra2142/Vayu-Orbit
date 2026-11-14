@@ -1,0 +1,43 @@
+# ==============================================================================
+# VAYU ORBIT — Firebase Data Connect Queries
+# Read-only reference catalogs for client evaluation
+# ==============================================================================
+# In accordance with VAYU ORBIT Security Directive VAYU-DOC-SEC-006:
+# Only unprivileged, static reference catalogs (corridor nodes and vehicle
+# master specifications) may be queried directly via Data Connect.
+#
+# Sensitive operational datasets (journeys, incidents, fuel intelligence,
+# ROP recon reports, and audit logs) MUST be requested through the FastAPI
+# backend to enforce Role-Based Access Control (RBAC) and separation of duties.
+# ==============================================================================
+
+query GetMilitaryNodes @auth(level: USER) {
+  militaryNodes {
+    nodeId
+    installationName
+    nodeType
+    state
+    commandJurisdiction
+    primaryHighway
+    lat
+    lon
+    delayMultiplier
+    maxAxleLoadTons
+    clearanceTimeMins
+  }
+}
+
+query GetVehicleCatalog @auth(level: USER) {
+  vehicleMasters(where: { isActive: { eq: true } }) {
+    vehicleId
+    classType
+    modelName
+    maker
+    gvwTons
+    operationalRangeKm
+    maxSpeedKmh
+    fuelType
+    tankCapacityLiters
+    fuelConsumptionKmpl
+  }
+}

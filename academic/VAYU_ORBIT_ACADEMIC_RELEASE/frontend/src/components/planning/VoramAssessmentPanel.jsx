@@ -41,9 +41,9 @@ export function getVoramCategoryInfo(score, categoryName) {
     return {
       label: 'Unassessed / Incomplete',
       badgeClass: 'unknown',
-      color: 'var(--text-muted)',
-      bg: 'rgba(148, 163, 184, 0.12)',
-      border: 'rgba(148, 163, 184, 0.35)'
+      color: 'var(--voram-unassessed-text, var(--text-muted))',
+      bg: 'var(--voram-unassessed-bg, rgba(148, 163, 184, 0.12))',
+      border: 'var(--voram-unassessed-border, rgba(148, 163, 184, 0.35))'
     };
   }
 
@@ -54,35 +54,35 @@ export function getVoramCategoryInfo(score, categoryName) {
     return {
       label: 'Low Concern',
       badgeClass: 'low-concern',
-      color: '#8ED8F8', // Approved Ice Blue
-      bg: 'rgba(142, 216, 248, 0.12)',
-      border: 'rgba(142, 216, 248, 0.40)'
+      color: 'var(--voram-low-text, #8ED8F8)',
+      bg: 'var(--voram-low-bg, rgba(142, 216, 248, 0.12))',
+      border: 'var(--voram-low-border, rgba(142, 216, 248, 0.40))'
     };
   }
   if (cat.includes('moderate') || (!categoryName && s < 50)) {
     return {
       label: 'Moderate Concern',
       badgeClass: 'moderate-concern',
-      color: '#F48CA0', // Approved Coral Pink
-      bg: 'rgba(244, 140, 160, 0.12)',
-      border: 'rgba(244, 140, 160, 0.40)'
+      color: 'var(--voram-mod-text, #F48CA0)',
+      bg: 'var(--voram-mod-bg, rgba(244, 140, 160, 0.12))',
+      border: 'var(--voram-mod-border, rgba(244, 140, 160, 0.40))'
     };
   }
   if (cat.includes('high') && !cat.includes('critical') || (!categoryName && s < 75)) {
     return {
       label: 'High Concern',
       badgeClass: 'high-concern',
-      color: '#AB1D79', // Approved Berry
-      bg: 'rgba(171, 29, 121, 0.15)',
-      border: 'rgba(171, 29, 121, 0.45)'
+      color: 'var(--voram-high-text, #AB1D79)',
+      bg: 'var(--voram-high-bg, rgba(171, 29, 121, 0.15))',
+      border: 'var(--voram-high-border, rgba(171, 29, 121, 0.45))'
     };
   }
   return {
     label: 'Critical Concern',
     badgeClass: 'critical-concern',
-    color: '#A10F18', // Approved Deep Red
-    bg: 'rgba(161, 15, 24, 0.18)',
-    border: 'rgba(161, 15, 24, 0.50)'
+    color: 'var(--voram-crit-text, #A10F18)',
+    bg: 'var(--voram-crit-bg, rgba(161, 15, 24, 0.18))',
+    border: 'var(--voram-crit-border, rgba(161, 15, 24, 0.50))'
   };
 }
 

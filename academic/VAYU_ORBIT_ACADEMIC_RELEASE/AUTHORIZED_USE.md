@@ -4,6 +4,9 @@
 **Version:** 6.0.0  
 **Effective Date:** 2026  
 **Copyright Owner:** Rudra Narayan Mishra  
+**Co-Author:** Suryansh Kumar Singh  
+**Institution:** Lovely Professional University, Punjab, India  
+**Problem Statement Reference:** PDS-3  
 
 ---
 

@@ -1068,30 +1068,10 @@ export default function JourneyPreview({ mission = {}, setMission, setPage, curr
             </div>
           </div>
 
-          {/* Trajectory Details */}
-          <div style={{ padding: '8px 10px', background: 'var(--panel-raised)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: 11.5 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-              <span style={{ color: 'var(--text-muted)' }}>Origin:</span>
-              <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{originName}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-              <span style={{ color: 'var(--text-muted)' }}>Destination:</span>
-              <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{destName}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-              <span style={{ color: 'var(--text-muted)' }}>Departure:</span>
-              <span style={{ fontFamily: "'Share Tech Mono', monospace" }}>{departureDate || '—'} {departureTime ? `@ ${departureTime}` : ''}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Route Profile:</span>
-              <span style={{ color: 'var(--accent)', fontWeight: 600 }}>{route?.mode_name || route?.mode?.toUpperCase() || 'BALANCED'}</span>
-            </div>
-          </div>
-
-          {/* Verification checklist pills */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-            <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Pre-Commit Status
+          {/* Pre-Commit Readiness Checklist */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
+            <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
+              Pre-Commit Status ({checks.filter(c => c.ok).length}/{checks.length} Verified)
             </div>
             {checks.map((chk, i) => (
               <div
@@ -1100,26 +1080,26 @@ export default function JourneyPreview({ mission = {}, setMission, setPage, curr
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  padding: '4px 8px',
+                  padding: '5px 8px',
                   borderRadius: 4,
                   background: chk.ok ? 'rgba(106, 154, 124, 0.08)' : 'rgba(255, 64, 96, 0.12)',
                   border: `1px solid ${chk.ok ? 'rgba(106, 154, 124, 0.2)' : 'rgba(255, 64, 96, 0.3)'}`,
-                  fontSize: 10.5
+                  fontSize: 11
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   {chk.ok ? (
-                    <CheckCircle2 size={12} color="var(--ok)" />
+                    <CheckCircle2 size={13} color="var(--ok)" />
                   ) : (
-                    <AlertTriangle size={12} color="var(--bad)" />
+                    <AlertTriangle size={13} color="var(--bad)" />
                   )}
-                  <span style={{ color: chk.ok ? 'var(--text-main)' : 'var(--warn)' }}>{chk.label}</span>
+                  <span style={{ color: chk.ok ? 'var(--text-main)' : 'var(--warn)', fontWeight: chk.ok ? 500 : 600 }}>{chk.label}</span>
                 </div>
                 {!chk.ok && (
                   <button
                     type="button"
                     className="btn small"
-                    style={{ padding: '1px 5px', fontSize: 9.5 }}
+                    style={{ padding: '2px 6px', fontSize: 10 }}
                     onClick={() => setPage(chk.fixPage)}
                   >
                     Fix →
@@ -1364,7 +1344,7 @@ export default function JourneyPreview({ mission = {}, setMission, setPage, curr
                 <span>Route Constraints & Infrastructure</span>
               </div>
               <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginTop: 2 }}>
-                Bridge structural limits and convoy regulated speed
+                Bridge structural limits & regulated speed
               </div>
             </div>
             <span className={`jp-risk-pill ${routeConstraints.bridgeCleared ? 'low' : 'high'}`}>
@@ -1416,7 +1396,7 @@ export default function JourneyPreview({ mission = {}, setMission, setPage, curr
                 <span>Corridor Risk Analysis</span>
               </div>
               <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginTop: 2 }}>
-                Evaluated hazard indicators — see Readiness Summary below for VORAM status
+                Terrain & operational hazards
               </div>
             </div>
           </div>

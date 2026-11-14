@@ -271,7 +271,7 @@ export default function JourneyOperations({
 
   // Select journey handler
   const handleSelectJourney = async (jid) => {
-    if (!jid) return;
+    if (!jid || loadingDetail) return;
     setLoadingDetail(true);
     setActionError('');
     setActionSuccess('');
@@ -1670,6 +1670,17 @@ export default function JourneyOperations({
       </div>
 
       {/* ── C. JOURNEY LIST (MAIN FOCUS) ── */}
+      {actionError && (
+        <div className="alert alert-danger" style={{ marginBottom: 14 }}>
+          <b>Action Alert:</b> {actionError}
+        </div>
+      )}
+      {loadingDetail && (
+        <div className="alert alert-info" style={{ marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <RefreshCw size={14} className="spin" style={{ color: 'var(--accent)' }} />
+          <span>Opening journey details…</span>
+        </div>
+      )}
       {loadingList ? (
         <div className="card" style={{ padding: 48, textAlign: 'center', color: 'var(--text-muted)' }}>
           <RefreshCw size={24} className="spin" style={{ color: 'var(--accent)', marginBottom: 8 }} />
@@ -1720,8 +1731,8 @@ export default function JourneyOperations({
                   <tr
                     key={j.journey_id}
                     className={selectedJourney?.journey_id === j.journey_id ? 'selected-row' : ''}
-                    onClick={() => handleSelectJourney(j.journey_id)}
-                    style={{ cursor: 'pointer' }}
+                    onClick={() => !loadingDetail && handleSelectJourney(j.journey_id)}
+                    style={{ cursor: loadingDetail ? 'wait' : 'pointer' }}
                   >
                     <td>
                       <span style={{ fontFamily: "'Share Tech Mono', monospace", fontWeight: 700, color: 'var(--text-main)' }}>
@@ -1748,7 +1759,11 @@ export default function JourneyOperations({
                         type="button"
                         className="btn small"
                         style={{ padding: '4px 10px', fontSize: 11 }}
-                        onClick={() => handleSelectJourney(j.journey_id)}
+                        disabled={loadingDetail}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSelectJourney(j.journey_id);
+                        }}
                       >
                         {jStatus === 'SCHEDULED' && canCoordinate
                           ? 'Start Journey'
@@ -1777,6 +1792,8 @@ export default function JourneyOperations({
                 <div
                   key={j.journey_id}
                   className={`jo-card-item ${selectedJourney?.journey_id === j.journey_id ? 'selected' : ''}`}
+                  onClick={() => !loadingDetail && handleSelectJourney(j.journey_id)}
+                  style={{ cursor: loadingDetail ? 'wait' : 'pointer' }}
                 >
                   <div className="jo-card-header">
                     <span style={{ fontFamily: "'Share Tech Mono', monospace", fontWeight: 700, fontSize: 13, color: 'var(--text-main)' }}>
@@ -1801,7 +1818,11 @@ export default function JourneyOperations({
                     <button
                       type="button"
                       className="btn primary small"
-                      onClick={() => handleSelectJourney(j.journey_id)}
+                      disabled={loadingDetail}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelectJourney(j.journey_id);
+                      }}
                     >
                       Open Journey →
                     </button>

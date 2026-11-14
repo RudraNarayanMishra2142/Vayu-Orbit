@@ -7,6 +7,14 @@ except ImportError:
 
 def fetch_available_vehicles(db_path='military_logistics.db'):
     """Pulls the live military vehicle catalog from the relational database."""
+    try:
+        import db_adapter
+        if db_adapter.get_provider() == "postgresql":
+            records = db_adapter.query("SELECT * FROM vehicle_master")
+            if records is not None:
+                return records
+    except Exception:
+        pass
     conn = sqlite3.connect(db_path)
     df = pd.read_sql_query("SELECT * FROM vehicle_master", conn)
     conn.close()

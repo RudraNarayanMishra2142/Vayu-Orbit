@@ -1,0 +1,33 @@
+# VAYU ORBIT — Render Blueprint Specification (render.yaml)
+# Configures single-instance backend web service with persistent disk for SQLite data retention
+
+services:
+  - type: web
+    name: vayu-orbit-backend
+    runtime: python
+    region: oregon
+    plan: starter
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m uvicorn api:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /healthz
+    numInstances: 1
+    disk:
+      name: vayu-sqlite-storage
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: CMS_DB_PATH
+        value: /data/military_logistics.db
+      - key: CORS_ORIGINS
+        sync: false
+        # Configure to your frontend URL, e.g.: https://vayu-orbit.vercel.app
+      - key: VAYU_JWT_SECRET
+        generateValue: true
+      - key: INITIAL_DEMO_PASSWORD
+        sync: false
+        # Optional: Set secure initial password for demonstration evaluation accounts

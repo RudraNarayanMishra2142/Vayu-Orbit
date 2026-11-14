@@ -1,0 +1,5 @@
+connectorId: "vayu-connector"
+generate:
+  javascriptSdk:
+    outputDir: "../../frontend/src/dataconnect-generated"
+    package: "@vayuorbit/dataconnect"

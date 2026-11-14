@@ -429,10 +429,10 @@ function Fleet() {
                         {v.role_category}
                       </span>
                     </td>
-                    <td style={{ fontFamily: "'Orbitron',monospace", fontSize: 12, color: 'var(--warn)' }}>
+                    <td style={{ fontFamily: "'Share Tech Mono', monospace", fontSize: 12, color: 'var(--warn)' }}>
                       {v.gvw_tons} t
                     </td>
-                    <td style={{ fontFamily: "'Orbitron',monospace", fontSize: 12, color: 'var(--ok)' }}>
+                    <td style={{ fontFamily: "'Share Tech Mono', monospace", fontSize: 12, color: 'var(--ok)' }}>
                       {v.max_speed_kmh} km/h
                     </td>
                     <td style={{ fontSize: 11 }}>

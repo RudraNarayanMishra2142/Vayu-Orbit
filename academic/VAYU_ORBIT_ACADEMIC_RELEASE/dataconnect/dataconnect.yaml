@@ -1,0 +1,12 @@
+specVersion: "v1beta"
+serviceId: "vayu-orbit-service"
+location: "asia-south1"
+schema:
+  source: "./schema"
+  datasource:
+    postgresql:
+      database: "vayu_orbit_db"
+      cloudSql:
+        instanceId: "vayu-orbit-sql"
+      schemaValidation: "COMPATIBLE"
+connectorDirs: ["./connector"]

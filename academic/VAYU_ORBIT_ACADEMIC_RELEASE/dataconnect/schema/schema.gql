@@ -1,0 +1,257 @@
+# ==============================================================================
+# VAYU ORBIT — Firebase Data Connect / SQL Connect GraphQL Schema
+# Backend: Cloud SQL for PostgreSQL (Database: vayu_orbit_db)
+# Mode: COMPATIBLE schema validation (Preserves existing operational tables)
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Core Geography & Master Catalogs
+# ------------------------------------------------------------------------------
+
+type MilitaryNode @table(name: "military_nodes", singular: "militaryNode", plural: "militaryNodes") {
+  nodeId: String! @col(name: "node_id")
+  installationName: String! @col(name: "installation_name")
+  nodeType: String! @col(name: "node_type")
+  state: String!
+  commandJurisdiction: String! @col(name: "command_jurisdiction")
+  primaryHighway: String @col(name: "primary_highway")
+  lat: Float
+  lon: Float
+  delayMultiplier: Float @col(name: "delay_multiplier")
+  maxAxleLoadTons: Float @col(name: "max_axle_load_tons")
+  clearanceTimeMins: Int @col(name: "clearance_time_mins")
+}
+
+type Place @table(name: "places", singular: "place", plural: "places") {
+  placeId: String! @col(name: "place_id")
+  placeName: String! @col(name: "place_name")
+  category: String!
+  region: String @default(expr: "''")
+  lat: Float!
+  lon: Float!
+  status: String! @default(expr: "'ACTIVE'")
+  accessClass: String! @col(name: "access_class") @default(expr: "'SIMULATION'")
+  maxVehicleTons: Float @col(name: "max_vehicle_tons") @default(expr: "12.0")
+  clearanceM: Float @col(name: "clearance_m") @default(expr: "4.0")
+  supportServices: String @col(name: "support_services") @default(expr: "''")
+  description: String @default(expr: "''")
+  createdAt: Timestamp! @col(name: "created_at") @default(expr: "request.time")
+  updatedAt: Timestamp! @col(name: "updated_at") @default(expr: "request.time")
+}
+
+type VehicleMaster @table(name: "vehicle_master", singular: "vehicleMaster", plural: "vehicleMasters") {
+  vehicleId: String! @col(name: "vehicle_id")
+  classType: String! @col(name: "class_type")
+  modelName: String! @col(name: "model_name")
+  maker: String!
+  axleConfig: String @col(name: "axle_config")
+  gvwTons: Float! @col(name: "gvw_tons")
+  operationalRangeKm: Int! @col(name: "operational_range_km")
+  maxSpeedKmh: Int! @col(name: "max_speed_kmh")
+  routingFootprint: String @col(name: "routing_footprint")
+  roleCategory: String! @col(name: "role_category") @default(expr: "'DUAL'")
+  isVip: Boolean! @col(name: "is_vip") @default(expr: "false")
+  ratedPassengerCapacity: Int @col(name: "rated_passenger_capacity")
+  passengerCapacityVerified: Boolean! @col(name: "passenger_capacity_verified") @default(expr: "false")
+  ratedPayloadTons: Float @col(name: "rated_payload_tons")
+  payloadCapacityVerified: Boolean! @col(name: "payload_capacity_verified") @default(expr: "false")
+  capacitySourceNote: String @col(name: "capacity_source_note") @default(expr: "''")
+  imageUrl: String @col(name: "image_url") @default(expr: "''")
+  isActive: Boolean! @col(name: "is_active") @default(expr: "true")
+  fuelType: String @col(name: "fuel_type") @default(expr: "'DIESEL'")
+  tankCapacityLiters: Float @col(name: "tank_capacity_liters")
+  fuelConsumptionKmpl: Float @col(name: "fuel_consumption_kmpl")
+  fuelSpecVerified: Boolean @col(name: "fuel_spec_verified") @default(expr: "true")
+}
+
+type FleetUnit @table(name: "fleet_units", singular: "fleetUnit", plural: "fleetUnits") {
+  unitId: String! @col(name: "unit_id")
+  modelId: String! @col(name: "model_id")
+  callsign: String
+  status: String! @default(expr: "'AVAILABLE'")
+  registrationNo: String @col(name: "registration_no")
+  assignedBase: String @col(name: "assigned_base") @default(expr: "''")
+  isDemo: Boolean! @col(name: "is_demo") @default(expr: "false")
+  notes: String @default(expr: "''")
+  createdAt: Timestamp! @col(name: "created_at") @default(expr: "request.time")
+  updatedAt: Timestamp! @col(name: "updated_at") @default(expr: "request.time")
+}
+
+type VehicleStatus @table(name: "vehicle_status", singular: "vehicleStatus", plural: "vehicleStatuses") {
+  vehicleId: String! @col(name: "vehicle_id")
+  status: String!
+  updatedAt: Timestamp! @col(name: "updated_at") @default(expr: "request.time")
+}
+
+# ------------------------------------------------------------------------------
+# 2. User Identity & Governance (PostgreSQL Authoritative RBAC)
+# ------------------------------------------------------------------------------
+
+type User @table(name: "users", singular: "user", plural: "users") {
+  id: String!
+  email: String! @unique
+  passwordHash: String! @col(name: "password_hash")
+  role: String!
+  firebaseUid: String @col(name: "firebase_uid") @unique
+  status: String! @default(expr: "'ACTIVE'")
+  createdAt: Timestamp @col(name: "created_at") @default(expr: "request.time")
+  updatedAt: Timestamp @col(name: "updated_at") @default(expr: "request.time")
+}
+
+type StagedSession @table(name: "staged_sessions", singular: "stagedSession", plural: "stagedSessions") {
+  stagedId: String! @col(name: "staged_id")
+  ownerUserId: String! @col(name: "owner_user_id")
+  createdAt: Timestamp! @col(name: "created_at") @default(expr: "request.time")
+  updatedAt: Timestamp! @col(name: "updated_at") @default(expr: "request.time")
+}
+
+# ------------------------------------------------------------------------------
+# 3. Convoy Journeys, Fuel & Operational Config
+# ------------------------------------------------------------------------------
+
+type Journey @table(name: "journeys", singular: "journey", plural: "journeys") {
+  journeyId: String! @col(name: "journey_id")
+  originId: String! @col(name: "origin_id")
+  destId: String! @col(name: "dest_id")
+  originName: String @col(name: "origin_name")
+  destName: String @col(name: "dest_name")
+  departureDate: String @col(name: "departure_date")
+  departureTime: String @col(name: "departure_time")
+  status: String! @default(expr: "'DRAFT'")
+  convoyJson: Any @col(name: "convoy_json") # JSONB
+  routeJson: Any @col(name: "route_json")   # JSONB
+  baselineRouteJson: Any @col(name: "baseline_route_json") # JSONB
+  risk: Float
+  distanceKm: Float @col(name: "distance_km")
+  etaHours: Float @col(name: "eta_hours")
+  createdAt: Timestamp! @col(name: "created_at") @default(expr: "request.time")
+  updatedAt: Timestamp! @col(name: "updated_at") @default(expr: "request.time")
+}
+
+type JourneyEvent @table(name: "journey_events", singular: "journeyEvent", plural: "journeyEvents") {
+  id: Int64! @default(expr: "autoincrement()")
+  journeyId: String! @col(name: "journey_id")
+  eventType: String! @col(name: "event_type")
+  message: String!
+  payloadJson: Any @col(name: "payload_json")
+  createdAt: Timestamp! @col(name: "created_at") @default(expr: "request.time")
+}
+
+type JourneyFuelConfig @table(name: "journey_fuel_config", singular: "journeyFuelConfig", plural: "journeyFuelConfigs") {
+  journeyId: String! @col(name: "journey_id")
+  reservePercent: Float! @col(name: "reserve_percent") @default(expr: "20.0")
+  departureFuelMode: String! @col(name: "departure_fuel_mode") @default(expr: "'UNKNOWN'")
+  vehicleFuelLevelsJson: Any @col(name: "vehicle_fuel_levels_json")
+  updatedAt: Timestamp! @col(name: "updated_at") @default(expr: "request.time")
+  updatedBy: String! @col(name: "updated_by")
+  notes: String @default(expr: "''")
+}
+
+type JourneyFuelOverride @table(name: "journey_fuel_overrides", singular: "journeyFuelOverride", plural: "journeyFuelOverrides") {
+  journeyId: String! @col(name: "journey_id")
+  overrideType: String! @col(name: "override_type")
+  fuelAssessmentStatus: String! @col(name: "fuel_assessment_status")
+  assessmentHash: String! @col(name: "assessment_hash")
+  reason: String!
+  authorizedBy: String! @col(name: "authorized_by")
+  authorizedRole: String! @col(name: "authorized_role")
+  createdAt: Timestamp! @col(name: "created_at") @default(expr: "request.time")
+}
+
+type JourneySpacingConfig @table(name: "journey_spacing_config", singular: "journeySpacingConfig", plural: "journeySpacingConfigs") {
+  journeyId: String! @col(name: "journey_id")
+  minSpacingM: Float! @col(name: "min_spacing_m") @default(expr: "40.0")
+  maxSpacingM: Float @col(name: "max_spacing_m")
+  updatedAt: Timestamp! @col(name: "updated_at") @default(expr: "request.time")
+  updatedBy: String! @col(name: "updated_by")
+  reason: String @default(expr: "''")
+}
+
+type JourneySensitivityAdvisory @table(name: "journey_sensitivity_advisory", singular: "journeySensitivityAdvisory", plural: "journeySensitivityAdvisories") {
+  journeyId: String! @col(name: "journey_id")
+  sensitivityLevel: String! @col(name: "sensitivity_level") @default(expr: "'STANDARD'")
+  escortRequirementState: String! @col(name: "escort_requirement_state") @default(expr: "'REVIEW_REQUIRED'")
+  policyReference: String! @col(name: "policy_reference") @default(expr: "'DEF-LOG-SOP-2026/SEC-04'")
+  supportNotes: String @col(name: "support_notes") @default(expr: "''")
+  reviewedBy: String @col(name: "reviewed_by")
+  reviewedAt: Timestamp @col(name: "reviewed_at")
+  confirmedBy: String @col(name: "confirmed_by")
+  confirmedAt: Timestamp @col(name: "confirmed_at")
+  createdAt: Timestamp! @col(name: "created_at") @default(expr: "request.time")
+  updatedAt: Timestamp! @col(name: "updated_at") @default(expr: "request.time")
+}
+
+type JourneyReadinessOverride @table(name: "journey_readiness_overrides", singular: "journeyReadinessOverride", plural: "journeyReadinessOverrides") {
+  journeyId: String! @col(name: "journey_id")
+  overrideType: String! @col(name: "override_type") @default(expr: "'READINESS_ADVISORY_OVERRIDE'")
+  reason: String!
+  authorizedBy: String! @col(name: "authorized_by")
+  authorizedRole: String! @col(name: "authorized_role")
+  createdAt: Timestamp! @col(name: "created_at") @default(expr: "request.time")
+}
+
+# ------------------------------------------------------------------------------
+# 4. Reconnaissance (ROP), Incidents & Immutable Audits
+# ------------------------------------------------------------------------------
+
+type RopReport @table(name: "rop_reports", singular: "ropReport", plural: "ropReports") {
+  reportId: String! @col(name: "report_id")
+  journeyId: String! @col(name: "journey_id")
+  routeVersion: String! @col(name: "route_version")
+  reportingUserId: String! @col(name: "reporting_user_id")
+  reportingUserEmail: String! @col(name: "reporting_user_email")
+  reportingUserRole: String! @col(name: "reporting_user_role")
+  status: String! @default(expr: "'SUBMITTED'")
+  observationPeriodStart: Timestamp @col(name: "observation_period_start")
+  observationPeriodEnd: Timestamp @col(name: "observation_period_end")
+  parametersJson: Any! @col(name: "parameters_json") # JSONB
+  reviewedBy: String @col(name: "reviewed_by")
+  reviewedAt: Timestamp @col(name: "reviewed_at")
+  reviewDecisionNotes: String @col(name: "review_decision_notes")
+  createdAt: Timestamp! @col(name: "created_at") @default(expr: "request.time")
+  updatedAt: Timestamp! @col(name: "updated_at") @default(expr: "request.time")
+}
+
+type Incident @table(name: "incidents", singular: "incident", plural: "incidents") {
+  id: String!
+  journeyId: String! @col(name: "journey_id")
+  vehicleId: String @col(name: "vehicle_id")
+  unitId: String @col(name: "unit_id")
+  ruleType: String! @col(name: "rule_type")
+  violationType: String! @col(name: "violation_type")
+  message: String!
+  evidenceSource: String! @col(name: "evidence_source") @default(expr: "'MANUAL_REPORT'")
+  observationTime: Timestamp! @col(name: "observation_time")
+  lastKnownPos: String @col(name: "last_known_pos")
+  verificationState: String! @col(name: "verification_state") @default(expr: "'SUSPECTED'")
+  handlingState: String! @col(name: "handling_state") @default(expr: "'OPEN'")
+  operatorAck: String @col(name: "operator_ack")
+  checkpointAck: String @col(name: "checkpoint_ack")
+  occurrenceCount: Int! @col(name: "occurrence_count") @default(expr: "1")
+  resolutionDetails: String @col(name: "resolution_details")
+  createdAt: Timestamp! @col(name: "created_at") @default(expr: "request.time")
+  updatedAt: Timestamp! @col(name: "updated_at") @default(expr: "request.time")
+}
+
+type AuditLog @table(name: "audit_log", singular: "auditLogEntry", plural: "auditLogEntries") {
+  id: Int64! @default(expr: "autoincrement()")
+  action: String!
+  objectType: String @col(name: "object_type")
+  objectId: String @col(name: "object_id")
+  details: String
+  createdAt: Timestamp! @col(name: "created_at") @default(expr: "request.time")
+  actorId: String @col(name: "actor_id")
+  actorRole: String @col(name: "actor_role")
+}
+
+type AuditEvent @table(name: "audit_events", singular: "auditEvent", plural: "auditEvents") {
+  eventId: String! @col(name: "event_id")
+  action: String!
+  entityType: String! @col(name: "entity_type")
+  entityId: String! @col(name: "entity_id")
+  actorId: String! @col(name: "actor_id")
+  actorRole: String! @col(name: "actor_role")
+  details: String!
+  diffJson: Any @col(name: "diff_json")
+  createdAt: Timestamp! @col(name: "created_at") @default(expr: "request.time")
+}
