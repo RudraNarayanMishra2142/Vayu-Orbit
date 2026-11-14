@@ -1,7 +1,7 @@
 # PUBLIC DISTRIBUTION AUTHORIZATION DECLARATION
 ## VAYU ORBIT — Academic Release v6.0.0 (Problem Statement PDS-3)
 
-**Document Status:** FORMAL DRAFT — PENDING COPYRIGHT OWNER SIGNATURE  
+**Document Status:** EXECUTED & SIGNED BY COPYRIGHT OWNER  
 **Proposed Authorizing Grantor:** Rudra Narayan Mishra  
 **Target Repository:** `RudraNarayanMishra2142/Vayu-Orbit`  
 **Target Visibility:** Public (GitHub)  
@@ -10,11 +10,9 @@
 
 ---
 
-> [!CAUTION]
-> **LEGAL NOTICE: UNSIGNED FORMAL DRAFT**  
-> This document records the proposed terms and scope of authorization for public GitHub hosting of the VAYU ORBIT Academic Release.  
-> **Under strict project safety boundaries, the creation or presence of this document does NOT constitute legal authorization to publish, push, or distribute the repository.**  
-> Public distribution remains strictly prohibited until this document is reviewed, approved, dated, and signed by the Copyright Owner (Rudra Narayan Mishra).
+> [!IMPORTANT]
+> **LEGAL NOTICE: FORMAL EXECUTED AUTHORIZATION**  
+> This document formally records the explicit authorization granted by the author and sole copyright owner (Rudra Narayan Mishra) for public GitHub repository hosting and academic distribution of the approved VAYU ORBIT Academic Release scope under the Proprietary Academic Evaluation Licence v1.0.
 
 ---
 
@@ -82,10 +80,10 @@ Student Reg No:  12515636
 
 Institution:     Lovely Professional University, Punjab, India
 
-Signature:       __________________________________________________
-                 (Unsigned Draft — Pending Copyright Owner Signature)
+Signature:       Rudra Narayan Mishra
+                 
 
-Date:            ______ / ______ / 2026
+Date:            15 / 11 / 2026
 
 ================================================================================
 ```
