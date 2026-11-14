@@ -357,7 +357,8 @@ The project includes verified demonstration interface captures in `academic/VAYU
 - **Student Registration:** 12515636
 - **Academic Degree:** B.Tech Computer Science & Engineering
 - **Institution:** Lovely Professional University, Punjab, India
-- **Course / Context:** Capstone Project — Problem Statement PDS-3
+- **Course / Context:** CSE276 - Problem Statement PDS-3
+- **Mentor** Hitesh Kumar
 - **Primary Contact:** mishrarudranarayan797@gmail.com
 
 ---
