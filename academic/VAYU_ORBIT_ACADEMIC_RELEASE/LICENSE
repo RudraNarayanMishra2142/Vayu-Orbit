@@ -1,45 +1,110 @@
-PROPRIETARY ACADEMIC EVALUATION AND RESEARCH LICENCE
+# VAYU ORBIT
+## Proprietary Academic Evaluation Licence
 
-Project: VAYU ORBIT — Intelligent Convoy Movement Planning and Dynamic Route Optimisation System for Military Logistics Decision Support
-Problem Statement: PDS-3
-Academic Release: 6.0.0 (Academic Release Candidate)
-Institution: Lovely Professional University, Punjab, India
-Academic Session: 2026–2027
-Copyright Owner: Rudra Narayan Mishra (Reg No: 12515636)
-Co-Author: Suryansh Kumar Singh (Reg No: 12516274)
-Faculty Project Supervisor: Hitesh Kumar
+**Version:** 1.0  
+**Effective Date:** 10/11/2026  
+**Project:** VAYU ORBIT  
+**Project Description:** Intelligent Convoy Movement Planning and Dynamic Route Optimisation System  
+**Jurisdiction:** India  
 
-IMPORTANT — READ CAREFULLY BEFORE ACCESSING, COPYING, OR USING THIS REPOSITORY:
+### 1. Copyright and Ownership
 
-This source code, documentation, architectural specification, and associated software artifacts (collectively, the "Software") are proprietary academic intellectual property. This Software is distributed strictly under this limited Academic Evaluation and Research Licence ("Licence"). By accessing, viewing, running, or storing this Software, you acknowledge and agree to be bound by the terms of this Licence and the accompanying AUTHORIZATION.md guidelines. If you do not agree to these terms, do not access, view, or execute this Software.
+VAYU ORBIT, including its original source code, software architecture, documentation, original designs, and other original materials, is protected by applicable copyright and intellectual property laws.
 
-NO GENERAL PUBLIC OR COMMERCIAL LICENCE IS GRANTED.
-THIS SOFTWARE IS NOT LICENSED UNDER MIT, APACHE, GPL, BSD, OR ANY OPEN-SOURCE PERMISSIVE LICENCE.
-PUBLIC DISTRIBUTION STATUS: NOT AUTHORIZED / PERMISSION PENDING.
+Copyright ownership remains with the respective author(s) and lawful rights holders of each contribution.
 
-1. PERMISSION AND SCOPE OF ACADEMIC EVALUATION
-Subject to the restrictions set forth herein, the Copyright Owner grants to designated academic instructors, project advisors, authorized academic evaluators, and project teammates (collectively, "Authorized Evaluator") a non-exclusive, non-transferable, revocable, royalty-free licence solely to:
-  (a) View, read, and inspect the source code for personal academic evaluation and coursework grading;
-  (b) Execute the Software locally in a development environment solely for non-operational academic demonstration, grading, and coursework evaluation;
-  (c) Review the architectural design, algorithmic implementations, and documentation for academic research purposes; and
-  (d) Formulate bug reports, technical critiques, and improvement recommendations directly to the Copyright Owner.
+The identified project author and copyright claimant is:
 
-2. EXPRESS RESTRICTIONS AND PROHIBITIONS
-Except as expressly permitted in Section 1, all rights are reserved by the Copyright Owner. Under no circumstances may an Authorized Evaluator or recipient:
-  (a) Redistribute, republish, mirror, sublicense, lease, sell, or commercially exploit the Software or any portion thereof;
-  (b) Upload, publish, or commit the Software or any derived code to public code-hosting platforms (including, but not limited to, public GitHub, GitLab, Bitbucket, or public file-sharing services);
-  (c) Remove, alter, obscure, or fail to retain any copyright notices, authorship credits, attribution headers, or proprietary statements in any file;
-  (d) Claim authorship, inventorship, or exclusive ownership of the Software, or present the Software, in whole or in part, as their own work;
-  (e) Deploy, integrate, or utilize the Software for operational military use, live highway logistics, defence procurement, or integration into production defense networks without separate, formal written authorization and mandatory institutional clearances;
-  (f) Modify, adapt, or create derivative works of the Software with the intent to distribute, publish, or present them outside the immediate academic evaluation group, unless authorized in writing by the Copyright Owner.
+- Rudra Narayan Mishra
 
-3. RETENTION OF OWNERSHIP
-Receiving, possessing, or executing a copy of this Software does not transfer, assign, convey, or waive any title, copyright, trademark, patent, or intellectual property right to the recipient. All title and rights in and to the Software remain exclusively with the Copyright Owner and verified contributors.
+The above identification establishes ownership subject to applicable law and any valid agreements.
 
-4. SEPARATE WRITTEN AUTHORIZATION REQUIRED
-Any activity beyond personal academic evaluation—including, but not limited to, commercial deployment, patent filing, institutional adoption, public publication, or operational defence deployment—requires a separate, formal, written agreement signed by the Copyright Owner.
+Nothing in this licence transfers ownership or assigns intellectual property rights to a user, evaluator, institution, organisation or third party.
 
-5. SIMULATION AND NON-OPERATIONAL DISCLAIMER
-VAYU ORBIT IS AN ACADEMIC DECISION-SUPPORT SIMULATION PROTOTYPE DEVELOPED SOLELY FOR COURSEWORK DEMONSTRATION. IT IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OPERATIONAL RESILIENCE, LIFE-CRITICAL SAFETY CERTIFICATION, OR NON-INFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY CLAIM, DAMAGES, LOSSES, OR LIABILITY ARISING FROM THE USE OR MISUSE OF THIS SOFTWARE.
+### 2. Limited Academic Evaluation Permission
 
-Copyright © 2026 Rudra Narayan Mishra. All rights reserved.
+Subject to the conditions of this licence, the copyright owner(s) grant an individual, non-exclusive, non-transferable, revocable permission to:
+
+- View and inspect the publicly displayed project materials.
+- Download or obtain a copy for personal academic evaluation and educational study.
+- Examine the source code to understand its implementation and architecture.
+- Execute the software locally for non-commercial academic learning and evaluation.
+- Reference the project in academic discussions, reports and presentations, with appropriate attribution.
+
+This permission is limited to the purposes stated above.
+
+### 3. Restrictions
+
+Without prior written permission from the applicable copyright owner(s), users may not:
+
+- Use VAYU ORBIT or its original materials for commercial purposes.
+- Sell, sublicense, commercially distribute or monetise the software or its components.
+- Redistribute, republish, mirror or commercially host the original project or modified copies.
+- Incorporate substantial portions of the proprietary source code into commercial products or services.
+- Claim authorship or ownership of another contributor's work.
+- Remove or misrepresent copyright, attribution or ownership notices.
+- Use the project as the basis of an operational military, security or logistics deployment without separate written authorization and appropriate independent validation.
+
+### 4. Modifications and Derivative Works
+
+Academic users may study the source code and create private experimental modifications solely for permitted non-commercial academic learning and evaluation.
+
+Such permission does not grant the right to publicly distribute, publish, sublicense or commercially exploit modified versions containing protected VAYU ORBIT materials.
+
+Original contributions made independently by third parties remain the property of their respective authors, subject to the rights applicable to any incorporated VAYU ORBIT material.
+
+### 5. Attribution
+
+Academic references to VAYU ORBIT must acknowledge the project and its identified author.
+
+Suggested attribution:
+
+"VAYU ORBIT — Intelligent Convoy Movement Planning and Dynamic Route Optimisation System. Academic project by Rudra Narayan Mishra, Lovely Professional University."
+
+Attribution does not imply endorsement, partnership or institutional approval.
+
+### 6. Third-Party Components
+
+This licence applies only to materials for which the VAYU ORBIT copyright owner(s) have the legal authority to grant permission.
+
+Third-party libraries, frameworks, packages, datasets, map services, APIs, fonts, images and other external materials remain subject to their respective licences, terms of service and intellectual property rights.
+
+Nothing in this licence overrides or replaces those third-party terms.
+
+### 7. No Warranty
+
+VAYU ORBIT is provided for academic and educational purposes only, on an "AS IS" basis, without warranties or guarantees, to the maximum extent permitted by applicable law.
+
+The project is an academic prototype and is not represented as certified, officially deployed, operationally validated or approved for real-world military use.
+
+Users are responsible for their own evaluation, testing and use of the software.
+
+### 8. Limitation of Liability
+
+To the maximum extent permitted by applicable law, the copyright owner(s) shall not be liable for claims, losses or damages arising from unauthorised use, modification, distribution or reliance upon the project.
+
+Nothing in this section excludes liability that cannot lawfully be excluded.
+
+### 9. Termination
+
+Permission under this licence automatically terminates if a user materially violates its conditions.
+
+Upon termination, the user must cease activities that are no longer authorised under this licence, subject to applicable law.
+
+### 10. Requests for Additional Permission
+
+Requests for commercial use, redistribution, sublicensing, public deployment, institutional adoption or other permissions outside the academic scope must be submitted to the applicable copyright owner(s) and approved in writing before such use.
+
+Contact: mishrarudranarayan797@gmail.com
+
+### 11. Governing Law
+
+This licence shall be interpreted in accordance with the laws of India, subject to applicable mandatory legal provisions and the jurisdiction of competent courts.
+
+### 12. Rights Reserved
+
+All rights not expressly granted under this licence are reserved by the applicable copyright owner(s).
+
+**VAYU ORBIT — All Rights Reserved.**
+
+Copyright © 2026 Rudra Narayan Mishra.
