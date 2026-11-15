@@ -279,38 +279,7 @@ Open your browser at `http://localhost:5173`.
 
 ---
 
-## 13. Environment Variable Configuration
-
-Copy the example environment files and supply appropriate keys:
-
-### Frontend (`frontend/.env.local`):
-```bash
-# TomTom API Key for road network geometry
-VITE_TOMTOM_API_KEY=YOUR_TOMTOM_API_KEY_HERE
-
-# Backend API URL
-VITE_API_URL=http://localhost:8000
-
-# Optional Firebase Web Client Configuration
-VITE_FIREBASE_API_KEY=YOUR_FIREBASE_API_KEY_HERE
-VITE_FIREBASE_AUTH_DOMAIN=vayuorbit-b20b5.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=vayuorbit-b20b5
-VITE_FIREBASE_STORAGE_BUCKET=vayuorbit-b20b5.firebasestorage.app
-VITE_FIREBASE_MESSAGING_SENDER_ID=914779488934
-VITE_FIREBASE_APP_ID=1:914779488934:web:d5affde7412aa559a5aa67
-```
-
-### Backend (`backend/.env`):
-```bash
-APP_ENV=development
-VAYU_JWT_SECRET=your_isolated_development_secret_here
-VAYU_DB_PROVIDER=sqlite
-VAYU_SQLITE_PATH=military_logistics_demo.db
-```
-
----
-
-## 14. Testing & Verification
+## 13. Testing & Verification
 
 The academic release contains an automated test suite verifying routing determinism, VORAM formulas, schema integrity, and security fail-safes:
 
@@ -327,21 +296,21 @@ Expected output:
 
 ---
 
-## 15. Demonstration & Evaluation Credentials
+## 14. Demonstration & Evaluation Credentials
 
-For academic evaluation and live demonstration, the database and Firebase Authentication service include three pre-provisioned role accounts:
+For academic evaluation and live demonstration, the database and authentication service include pre-provisioned role accounts:
 
-| Role | Email | Password | Firebase UID | Access Privileges |
-| :--- | :--- | :--- | :--- | :--- |
-| **Convoy Coordinator** | `coordinator@vayu.local` | `DemoCoordinator@2026` | `DRMJzwuOekYLe58BDvU9qhp1nrJ2` | Full command, convoy approvals, and reroute authorizations |
-| **Convoy Creator** | `creator@vayu.local` | `DemoCreator@2026` | `5MIsGupdiXRhq6XWGI7UXil0uRe2` | Route planning, vehicle manifest configuration, and convoy creation |
-| **Checkpoint Recon** | `checkpoint@vayu.local` | `DemoCheckpoint@2026` | `wVZr20U278QZRG0nWOgAAYi7w9f2` | Checkpoint clearance, transit logging, and field observations |
+| Role | Email | Password | Access Privileges |
+| :--- | :--- | :--- | :--- |
+| **Convoy Coordinator** | `coordinator@vayu.local` | `DemoCoordinator@2026` | Full command, convoy approvals, and reroute authorizations |
+| **Convoy Creator** | `creator@vayu.local` | `DemoCreator@2026` | Route planning, vehicle manifest configuration, and convoy creation |
+| **Checkpoint Recon** | `checkpoint@vayu.local` | `DemoCheckpoint@2026` | Checkpoint clearance, transit logging, and field observations |
 
 *Note: The frontend login interface also provides one-click quick-select role buttons to automatically populate these credentials.*
 
 ---
 
-## 16. Demonstration & Interface References
+## 15. Demonstration & Interface References
 
 The project includes verified demonstration interface captures in `academic/VAYU_ORBIT_ACADEMIC_RELEASE/frontend/public/showcase/`:
 - `planning_showcase.png`: Multi-vehicle convoy manifest builder and waypoint configuration.
@@ -350,7 +319,7 @@ The project includes verified demonstration interface captures in `academic/VAYU
 
 ---
 
-## 17. Academic Scope & Limitations
+## 16. Academic Scope & Limitations
 
 1. **Simulated Geography:** Corridor waypoints represent synthetic simulation networks based on public geography and do not reflect real military supply depots.
 2. **Deterministic Modeling:** Environmental conditions (weather, road damage) are simulated parameters input for evaluation purposes.
@@ -358,7 +327,7 @@ The project includes verified demonstration interface captures in `academic/VAYU
 
 ---
 
-## 18. Future Enhancements
+## 17. Future Enhancements
 
 - Multi-convoy collision avoidance and temporal slot scheduling using genetic algorithms.
 - Satellite synthetic aperture radar (SAR) flood/landslide imagery integration for automated road condition scoring.
@@ -366,7 +335,7 @@ The project includes verified demonstration interface captures in `academic/VAYU
 
 ---
 
-## 19. Project Team & Roles
+## 18. Project Team & Roles
 
 - **Rudra Narayan Mishra** — Project Lead & Lead Developer
   - Copyright Claimant & Primary Author (Registration No: 12515636)
@@ -383,7 +352,7 @@ The project includes verified demonstration interface captures in `academic/VAYU
 
 ---
 
-## 20. Proprietary Licence Summary
+## 19. Proprietary Licence Summary
 
 This software is governed by the **VAYU ORBIT Proprietary Academic Evaluation Licence** (see [LICENSE](LICENSE)).
 - **Permitted:** Non-commercial educational review, coursework examination, academic demonstration, and local experimental testing.

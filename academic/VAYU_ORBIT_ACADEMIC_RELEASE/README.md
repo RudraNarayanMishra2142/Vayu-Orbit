@@ -121,13 +121,13 @@ Open `http://localhost:5173` in your browser.
 
 ## 6. Demonstration & Evaluation Credentials
 
-The included evaluation database `backend/military_logistics_demo.db` and Firebase Authentication directory contain pre-provisioned simulation accounts:
+The included evaluation database `backend/military_logistics_demo.db` and authentication directory contain pre-provisioned simulation accounts:
 
-| Role | Email | Password | Firebase UID | Access Privileges |
-| :--- | :--- | :--- | :--- | :--- |
-| **Convoy Coordinator** | `coordinator@vayu.local` | `DemoCoordinator@2026` | `DRMJzwuOekYLe58BDvU9qhp1nrJ2` | Full command, approvals, and reroute authorizations |
-| **Convoy Creator** | `creator@vayu.local` | `DemoCreator@2026` | `5MIsGupdiXRhq6XWGI7UXil0uRe2` | Route planning & convoy creation |
-| **Checkpoint Recon** | `checkpoint@vayu.local` | `DemoCheckpoint@2026` | `wVZr20U278QZRG0nWOgAAYi7w9f2` | Checkpoint clearance & transit logging |
+| Role | Email | Password | Access Privileges |
+| :--- | :--- | :--- | :--- |
+| **Convoy Coordinator** | `coordinator@vayu.local` | `DemoCoordinator@2026` | Full command, approvals, and reroute authorizations |
+| **Convoy Creator** | `creator@vayu.local` | `DemoCreator@2026` | Route planning & convoy creation |
+| **Checkpoint Recon** | `checkpoint@vayu.local` | `DemoCheckpoint@2026` | Checkpoint clearance & transit logging |
 
 All accounts are mock accounts on a `.local` domain. The frontend login interface also provides one-click quick-select role buttons to automatically populate these credentials.
 
