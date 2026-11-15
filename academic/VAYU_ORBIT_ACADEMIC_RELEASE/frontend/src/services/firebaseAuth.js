@@ -42,6 +42,15 @@ export function formatAuthError(error) {
       return 'Network connection failure. Unable to contact Firebase identity server.';
     case 'auth/requires-recent-login':
       return 'Security timeout. Please sign in again to perform this operation.';
+    case 'auth/api-key-not-valid':
+    case 'auth/invalid-api-key':
+      return 'Firebase Web API key is invalid or unconfigured. Verify your VITE_FIREBASE_API_KEY environment variable.';
+    case 'auth/app-deleted':
+      return 'Firebase app instance was deleted. Please refresh the page.';
+    case 'auth/expired-action-code':
+      return 'The password reset link has expired. Please request a new one.';
+    case 'auth/invalid-action-code':
+      return 'The password reset link is invalid or has already been used.';
     default:
       return error.message || 'Authentication error. Please contact logistics command.';
   }

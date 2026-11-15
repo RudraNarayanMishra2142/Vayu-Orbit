@@ -16,7 +16,8 @@
 
 **VAYU ORBIT** is a military logistics convoy planning, route assessment, and operational decision-support prototype developed under Academic Problem Statement **PDS-3** (Autonomous / Semi-Autonomous Logistics & Tactical Convoy Scheduling).
 
-- **Sole Author & Copyright Claimant:** Rudra Narayan Mishra
+- **Project Lead & Lead Developer:** Rudra Narayan Mishra (Author & Copyright Claimant)
+- **Project Documentation Associate:** Suryansh Kumar Singh
 - **Institution:** Lovely Professional University, Punjab, India
 - **Problem Statement:** PDS-3
 - **Licence:** Proprietary Academic Evaluation Licence (see `LICENSE`)
@@ -139,14 +140,18 @@ All 80 test cases across routing, VORAM formulas, database migration, and securi
 
 ---
 
-## 8. Author & Ownership Declaration
+## 8. Project Team & Roles
 
-- **Author & Copyright Claimant:** Rudra Narayan Mishra
-- **Student Registration No:** 12515636
-- **School:** School of Computer Science & Engineering
-- **Institution:** Lovely Professional University, Punjab, India
+- **Rudra Narayan Mishra** — Project Lead & Lead Developer
+  - Author & Copyright Claimant (Registration No: 12515636)
+  - System architecture, backend and frontend development, routing algorithms, VORAM heuristics, and security implementation.
+  - Primary Contact: mishrarudranarayan797@gmail.com
+- **Suryansh Kumar Singh** — Project Documentation Associate
+  - Preparation and maintenance of project documentation.
+  - Organisation and formatting of project reports and supporting documents.
+  - Maintenance of documentation structure and records.
+- **Academic Institution:** Lovely Professional University, Punjab, India
 - **Academic Context:** Capstone Project — Problem Statement PDS-3
-- **Primary Contact:** mishrarudranarayan797@gmail.com
 
 ---
 

@@ -38,7 +38,8 @@
 
 **VAYU ORBIT** is an intelligent decision-support system designed to model, assess, and optimize multi-vehicle tactical convoy transit across simulated road and terrain corridors. The system addresses critical logistical constraints encountered in convoy planning, including bridge axle weight limits, vehicle gross vehicle weight (GVW) ratings, passenger-to-freight payload safety separation, elevation gradients, and real-time Road Opening Party (ROP) recon updates.
 
-- **Author & Copyright Claimant:** Rudra Narayan Mishra
+- **Author & Copyright Claimant:** Rudra Narayan Mishra (Project Lead & Lead Developer)
+- **Project Documentation Associate:** Suryansh Kumar Singh
 - **Institution:** Lovely Professional University, Punjab, India
 - **Problem Statement:** PDS-3 (Convoy Movement Planning & Dynamic Tactical Route Optimization)
 - **Release Version:** 6.0.0 (Academic Release)
@@ -351,15 +352,20 @@ The project includes verified demonstration interface captures in `academic/VAYU
 
 ---
 
-## 18. Author & Ownership
+## 18. Project Team & Roles
 
-- **Sole Author & Copyright Claimant:** Rudra Narayan Mishra
-- **Student Registration:** 12515636
-- **Academic Degree:** B.Tech Computer Science & Engineering
-- **Institution:** Lovely Professional University, Punjab, India
+- **Rudra Narayan Mishra** — Project Lead & Lead Developer
+  - Copyright Claimant & Primary Author (Registration No: 12515636)
+  - System architecture, backend and frontend development, routing algorithms, VORAM heuristics, database schema design, and security implementation.
+  - Academic Degree: B.Tech Computer Science & Engineering
+  - Primary Contact: mishrarudranarayan797@gmail.com
+- **Suryansh Kumar Singh** — Project Documentation Associate
+  - Preparation and maintenance of project documentation.
+  - Organisation and formatting of project reports and supporting documents.
+  - Maintenance of documentation structure and records.
+- **Academic Institution:** Lovely Professional University, Punjab, India
 - **Course / Context:** CSE276 - Problem Statement PDS-3
-- **Mentor** Hitesh Kumar
-- **Primary Contact:** mishrarudranarayan797@gmail.com
+- **Mentor:** Hitesh Kumar
 
 ---
 
