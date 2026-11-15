@@ -1,52 +1,26 @@
 import React, { useState } from 'react';
-import { Lock, Eye, EyeOff, ArrowRight, Loader2, AlertCircle, User, CheckCircle2, ShieldCheck, KeyRound } from 'lucide-react';
+import { Lock, Eye, EyeOff, ArrowRight, Loader2, AlertCircle, User, ShieldCheck } from 'lucide-react';
 import { api } from '../services/api';
-import { resetPassword } from '../services/firebaseAuth';
 
 /* ─────────────────────────────────────────────────────────────
-   VAYU ORBIT — Tactical Operational Login Experience
-   Design Principles:
-   - Full-bleed operational terrain/corridor canvas.
-   - Polished, accessible floating authentication panel.
-   - Dynamic validation, password visibility toggling, clear error feedback.
-   - Role quick-fill cards for Creator, Checkpoint, and Coordinator.
-   - Robust Firebase Auth error handling with helpful guidance.
+   VAYU ORBIT — Sovereign Tactical Login Experience
+   Zero third-party identity dependencies. Fast, resilient, 
+   self-contained HMAC-SHA256 JWT authentication.
    ───────────────────────────────────────────────────────────── */
 
 export default function Login({ onLoginSuccess }) {
-  const [email, setEmail]               = useState('');
-  const [password, setPassword]         = useState('');
+  const [email, setEmail]               = useState('coordinator@vayu.local');
+  const [password, setPassword]         = useState('VayuOrbit@2026');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading]           = useState(false);
   const [error, setError]               = useState('');
-  const [emailTouched, setEmailTouched] = useState(false);
   const [activeRole, setActiveRole]     = useState('coordinator');
-
-  // Password reset state
-  const [isResetMode, setIsResetMode]   = useState(false);
-  const [resetEmail, setResetEmail]     = useState('');
-  const [resetLoading, setResetLoading] = useState(false);
-  const [resetSuccess, setResetSuccess] = useState('');
-  const [resetError, setResetError]     = useState('');
-
-  // Email format validation helper
-  const isEmailValid = (val) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const cleanEmail = email.trim();
-    if (!cleanEmail) {
-      setError('Please enter your operator email address.');
-      return;
-    }
-    if (!isEmailValid(cleanEmail)) {
-      setError('Please enter a valid email address (e.g. coordinator@vayu.local).');
-      return;
-    }
-    if (!password) {
-      setError('Please enter your password.');
+    if (!cleanEmail || !password) {
+      setError('Please enter your operator email and password.');
       return;
     }
 
@@ -66,33 +40,10 @@ export default function Login({ onLoginSuccess }) {
     }
   };
 
-  const handleResetSubmit = async (e) => {
-    e.preventDefault();
-    const cleanResetEmail = resetEmail.trim();
-    if (!cleanResetEmail) {
-      setResetError('Enter your registered operator email to receive reset instructions.');
-      return;
-    }
-    if (!isEmailValid(cleanResetEmail)) {
-      setResetError('Enter a valid email address format.');
-      return;
-    }
-    setResetLoading(true);
-    setResetError('');
-    setResetSuccess('');
-    try {
-      await resetPassword(cleanResetEmail);
-      setResetSuccess('Password reset link dispatched. Please check your operator inbox.');
-    } catch (err) {
-      setResetError(err.message || 'Failed to dispatch password reset link.');
-    } finally {
-      setResetLoading(false);
-    }
-  };
-
   const handleSimFill = (roleKey, roleEmail) => {
     setActiveRole(roleKey);
     setEmail(roleEmail);
+    setPassword('VayuOrbit@2026');
     setError('');
   };
 
@@ -133,208 +84,112 @@ export default function Login({ onLoginSuccess }) {
       </div>
 
       {/* ── Floating Right-Panel: Authentication ── */}
-      <aside className="m-panel" role="main" aria-label={isResetMode ? 'Password recovery' : 'Sign in'}>
+      <aside className="m-panel" role="main" aria-label="Sign in">
         <div className="m-panel-inner">
-          {isResetMode ? (
-            <>
-              <div className="m-panel-header">
-                <span className="m-panel-eyebrow">Identity Recovery</span>
-                <h1 className="m-panel-title">Reset password</h1>
-                <p className="m-panel-desc">
-                  Enter your registered operator email to receive password reset instructions via Firebase.
-                </p>
+          <div className="m-panel-header">
+            <span className="m-panel-eyebrow">Tactical Command Access</span>
+            <h1 className="m-panel-title">Sign in</h1>
+            <p className="m-panel-desc">
+              Sovereign credentials for route assessment and convoy management.
+            </p>
+          </div>
+
+          {error && (
+            <div className="m-alert m-alert--error" role="alert" aria-live="assertive">
+              <AlertCircle size={15} className="m-alert-icon" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="m-form" noValidate>
+            <div className="m-field">
+              <label htmlFor="m-email" className="m-label">Email or operator ID</label>
+              <div className="m-input-wrap">
+                <User size={15} className="m-input-icon" />
+                <input
+                  id="m-email"
+                  type="email"
+                  className="m-input"
+                  placeholder="operator@vayu.local"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (error) setError('');
+                  }}
+                  autoComplete="username"
+                  autoFocus
+                  disabled={loading}
+                  required
+                />
               </div>
+            </div>
 
-              {resetError && (
-                <div className="m-alert m-alert--error" role="alert" aria-live="polite">
-                  <AlertCircle size={15} className="m-alert-icon" />
-                  <span>{resetError}</span>
-                </div>
-              )}
-
-              {resetSuccess && (
-                <div className="m-alert m-alert--success" role="status" aria-live="polite">
-                  <CheckCircle2 size={15} className="m-alert-icon" />
-                  <span>{resetSuccess}</span>
-                </div>
-              )}
-
-              <form onSubmit={handleResetSubmit} className="m-form" noValidate>
-                <div className="m-field">
-                  <label htmlFor="m-reset-email" className="m-label">Operator email</label>
-                  <div className="m-input-wrap">
-                    <User size={15} className="m-input-icon" />
-                    <input
-                      id="m-reset-email"
-                      type="email"
-                      className="m-input"
-                      placeholder="operator@vayu.local"
-                      value={resetEmail}
-                      onChange={(e) => setResetEmail(e.target.value)}
-                      autoFocus
-                      disabled={resetLoading}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  className={`m-submit${resetLoading ? ' m-submit--busy' : ''}`}
-                  disabled={resetLoading}
-                >
-                  {resetLoading ? (
-                    <><Loader2 size={15} className="spin-icon" /><span>Dispatching…</span></>
-                  ) : (
-                    <><span>Send Reset Link</span><ArrowRight size={15} /></>
-                  )}
-                </button>
-
+            <div className="m-field">
+              <label htmlFor="m-password" className="m-label">Password</label>
+              <div className="m-input-wrap">
+                <Lock size={15} className="m-input-icon" />
+                <input
+                  id="m-password"
+                  type={showPassword ? 'text' : 'password'}
+                  className="m-input m-input--pw"
+                  placeholder="••••••••••••"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (error) setError('');
+                  }}
+                  autoComplete="current-password"
+                  disabled={loading}
+                  required
+                />
                 <button
                   type="button"
-                  className="m-btn-secondary"
-                  onClick={() => {
-                    setIsResetMode(false);
-                    setResetSuccess('');
-                    setResetError('');
-                  }}
+                  className="m-pw-toggle"
+                  onClick={() => setShowPassword(v => !v)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  tabIndex={0}
                 >
-                  Back to Sign in
+                  {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
-              </form>
-            </>
-          ) : (
-            <>
-              <div className="m-panel-header">
-                <span className="m-panel-eyebrow">Tactical Command Access</span>
-                <h1 className="m-panel-title">Sign in</h1>
-                <p className="m-panel-desc">
-                  Authenticated access to route assessment and convoy management.
-                </p>
               </div>
+            </div>
 
-              {error && (
-                <div className="m-alert m-alert--error" role="alert" aria-live="assertive">
-                  <AlertCircle size={15} className="m-alert-icon" />
-                  <span>{error}</span>
-                </div>
+            <button
+              type="submit"
+              className={`m-submit${loading ? ' m-submit--busy' : ''}`}
+              disabled={loading}
+              aria-busy={loading}
+            >
+              {loading ? (
+                <><Loader2 size={15} className="spin-icon" /><span>Verifying credentials…</span></>
+              ) : (
+                <><span>Sign in to Console</span><ArrowRight size={15} /></>
               )}
+            </button>
+          </form>
 
-              <form onSubmit={handleSubmit} className="m-form" noValidate>
-                <div className="m-field">
-                  <div className="m-field-head">
-                    <label htmlFor="m-email" className="m-label">Email or operator ID</label>
-                    {emailTouched && email && !isEmailValid(email) && (
-                      <span className="m-validation-hint">Invalid format</span>
-                    )}
-                  </div>
-                  <div className={`m-input-wrap${emailTouched && email && !isEmailValid(email) ? ' m-input-wrap--invalid' : ''}`}>
-                    <User size={15} className="m-input-icon" />
-                    <input
-                      id="m-email"
-                      type="email"
-                      className="m-input"
-                      placeholder="operator@vayu.local"
-                      value={email}
-                      onChange={(e) => {
-                        setEmail(e.target.value);
-                        if (error) setError('');
-                      }}
-                      onBlur={() => setEmailTouched(true)}
-                      autoComplete="username"
-                      autoFocus
-                      disabled={loading}
-                      required
-                      aria-invalid={emailTouched && email && !isEmailValid(email) ? 'true' : 'false'}
-                    />
-                  </div>
-                </div>
-
-                <div className="m-field">
-                  <div className="m-field-head">
-                    <label htmlFor="m-password" className="m-label">Password</label>
-                    <button
-                      type="button"
-                      className="m-forgot-link"
-                      onClick={() => {
-                        setResetEmail(email);
-                        setIsResetMode(true);
-                        setError('');
-                      }}
-                    >
-                      Forgot password?
-                    </button>
-                  </div>
-                  <div className="m-input-wrap">
-                    <Lock size={15} className="m-input-icon" />
-                    <input
-                      id="m-password"
-                      type={showPassword ? 'text' : 'password'}
-                      className="m-input m-input--pw"
-                      placeholder="••••••••••••"
-                      value={password}
-                      onChange={(e) => {
-                        setPassword(e.target.value);
-                        if (error) setError('');
-                      }}
-                      autoComplete="current-password"
-                      disabled={loading}
-                      required
-                    />
-                    <button
-                      type="button"
-                      className="m-pw-toggle"
-                      onClick={() => setShowPassword(v => !v)}
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
-                      tabIndex={0}
-                    >
-                      {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                    </button>
-                  </div>
-                </div>
-
+          {/* Operational identity selector — quick-switch role profiles */}
+          <div className="m-sim">
+            <span className="m-sim-label">Evaluation Role Profiles</span>
+            <div className="m-sim-row">
+              {[
+                ['coordinator', 'coordinator@vayu.local', 'Coordinator'],
+                ['creator', 'creator@vayu.local', 'Creator'],
+                ['checkpoint', 'checkpoint@vayu.local', 'Checkpoint']
+              ].map(([key, roleEmail, label]) => (
                 <button
-                  type="submit"
-                  className={`m-submit${loading ? ' m-submit--busy' : ''}`}
-                  disabled={loading}
-                  aria-busy={loading}
+                  key={key}
+                  type="button"
+                  className={`m-sim-btn${email === roleEmail ? ' m-sim-btn--on' : ''}`}
+                  onClick={() => handleSimFill(key, roleEmail)}
+                  title={`${roleEmail} (Password: VayuOrbit@2026)`}
+                  aria-pressed={email === roleEmail}
                 >
-                  {loading ? (
-                    <><Loader2 size={15} className="spin-icon" /><span>Verifying credentials…</span></>
-                  ) : (
-                    <><span>Sign in to Console</span><ArrowRight size={15} /></>
-                  )}
+                  {label}
                 </button>
-              </form>
-
-              {/* Operational identity selector — quick-switch role profiles */}
-              <div className="m-sim">
-                <div className="m-sim-header">
-                  <KeyRound size={13} className="m-sim-icon" />
-                  <span className="m-sim-label">Evaluation Role Profiles</span>
-                </div>
-                <div className="m-sim-row">
-                  {[
-                    ['coordinator', 'coordinator@vayu.local', 'Coordinator', 'Full Command'],
-                    ['creator', 'creator@vayu.local', 'Creator', 'Convoy Planner'],
-                    ['checkpoint', 'checkpoint@vayu.local', 'Checkpoint', 'Field Recon']
-                  ].map(([key, roleEmail, label, roleDesc]) => (
-                    <button
-                      key={key}
-                      type="button"
-                      className={`m-sim-btn${email === roleEmail ? ' m-sim-btn--on' : ''}`}
-                      onClick={() => handleSimFill(key, roleEmail)}
-                      title={`${roleEmail} (${roleDesc})`}
-                      aria-pressed={email === roleEmail}
-                    >
-                      <span className="m-sim-role-name">{label}</span>
-                      <span className="m-sim-role-desc">{roleDesc}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
+              ))}
+            </div>
+          </div>
         </div>
       </aside>
     </div>
@@ -358,24 +213,24 @@ function CorridorCanvas() {
         <linearGradient id="corr-a" x1="0%" y1="100%" x2="100%" y2="0%">
           <stop offset="0%"   stopColor="#668CA0" stopOpacity="0.0" />
           <stop offset="35%"  stopColor="#668CA0" stopOpacity="0.5" />
-          <stop offset="75%"  stopColor="#9BBDCE" stopOpacity="0.9" />
-          <stop offset="100%" stopColor="#DBE1E9" stopOpacity="1.0" />
+          <stop offset="65%"  stopColor="#9BBDCE" stopOpacity="0.85" />
+          <stop offset="100%" stopColor="#DBE1E9" stopOpacity="0.9" />
         </linearGradient>
 
-        <linearGradient id="corr-b" x1="0%" y1="100%" x2="100%" y2="0%">
+        <linearGradient id="corr-b" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%"   stopColor="#668CA0" stopOpacity="0.0" />
-          <stop offset="50%"  stopColor="#668CA0" stopOpacity="0.35" />
-          <stop offset="100%" stopColor="#9BBDCE" stopOpacity="0.6" />
+          <stop offset="50%"  stopColor="#668CA0" stopOpacity="0.4" />
+          <stop offset="100%" stopColor="#9BBDCE" stopOpacity="0.7" />
         </linearGradient>
 
-        <linearGradient id="corr-c" x1="0%" y1="0%" x2="100%" y2="100%">
+        <linearGradient id="corr-c" x1="0%" y1="50%" x2="100%" y2="50%">
           <stop offset="0%"   stopColor="#668CA0" stopOpacity="0.3" />
-          <stop offset="100%" stopColor="#DBE1E9" stopOpacity="0.7" />
+          <stop offset="100%" stopColor="#4A6170" stopOpacity="0.0" />
         </linearGradient>
 
         <radialGradient id="node-glow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%"   stopColor="#668CA0" stopOpacity="0.6" />
-          <stop offset="50%"  stopColor="#668CA0" stopOpacity="0.2" />
+          <stop offset="0%"   stopColor="#9BBDCE" stopOpacity="0.4" />
+          <stop offset="60%"  stopColor="#668CA0" stopOpacity="0.1" />
           <stop offset="100%" stopColor="#668CA0" stopOpacity="0.0" />
         </radialGradient>
 

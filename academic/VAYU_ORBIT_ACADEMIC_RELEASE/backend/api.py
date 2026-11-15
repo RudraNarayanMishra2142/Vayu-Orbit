@@ -521,7 +521,36 @@ def get_current_user(request: Request) -> dict:
     if not token:
         raise HTTPException(status_code=401, detail="Unauthorized: Authentication required.")
 
-    # 1. Primary: Verify Firebase ID token
+    # 1. Primary: Verify Sovereign JWT token
+    legacy_payload = auth.verify_legacy_jwt(token)
+    if legacy_payload:
+        user_id = legacy_payload.get("sub")
+        email = (legacy_payload.get("email") or "").strip().lower()
+        user = query("SELECT * FROM users WHERE id=? OR lower(email)=?", [user_id, email], one=True)
+        if not user:
+            if legacy_payload.get("role"):
+                return {
+                    "id": user_id,
+                    "email": email,
+                    "role": legacy_payload.get("role"),
+                    "status": "ACTIVE"
+                }
+            raise HTTPException(status_code=401, detail="Unauthorized: Operator account not found.")
+
+        status = (user.get("status") or "ACTIVE").upper()
+        if status == "DISABLED":
+            raise HTTPException(status_code=403, detail="Forbidden: Operator account is deactivated.")
+        if status == "PENDING_ROLE":
+            raise HTTPException(status_code=403, detail="Forbidden: Operator account pending role assignment.")
+
+        return {
+            "id": user["id"],
+            "email": user["email"],
+            "role": user["role"],
+            "status": status
+        }
+
+    # 2. Secondary: Verify Firebase ID token if present
     fb_payload = auth.verify_firebase_id_token(token)
     if fb_payload:
         fb_uid = fb_payload.get("uid") or fb_payload.get("sub")
@@ -559,38 +588,7 @@ def get_current_user(request: Request) -> dict:
             "firebase_uid": user.get("firebase_uid") or fb_uid
         }
 
-    # 2. Controlled Legacy JWT Transition
-    legacy_payload = auth.verify_legacy_jwt(token)
-    if legacy_payload:
-        user_id = legacy_payload.get("sub")
-        email = (legacy_payload.get("email") or "").strip().lower()
-        user = query("SELECT * FROM users WHERE id=? OR lower(email)=?", [user_id, email], one=True)
-        if not user:
-            if os.environ.get("APP_ENV") != "production" and legacy_payload.get("role"):
-                return {
-                    "id": user_id,
-                    "email": email,
-                    "role": legacy_payload.get("role"),
-                    "status": "ACTIVE",
-                    "legacy_transition": True
-                }
-            raise HTTPException(status_code=401, detail="Unauthorized: Legacy operator account not found.")
-
-        status = (user.get("status") or "ACTIVE").upper()
-        if status == "DISABLED":
-            raise HTTPException(status_code=403, detail="Forbidden: Operator account is deactivated.")
-        if status == "PENDING_ROLE":
-            raise HTTPException(status_code=403, detail="Forbidden: Operator account pending role assignment.")
-
-        return {
-            "id": user["id"],
-            "email": user["email"],
-            "role": user["role"],
-            "status": status,
-            "legacy_transition": True
-        }
-
-    raise HTTPException(status_code=401, detail="Unauthorized: Invalid or expired Firebase ID token.")
+    raise HTTPException(status_code=401, detail="Unauthorized: Invalid or expired authentication token.")
 
 def require_role(allowed_roles: list[str]):
     def role_checker(user: dict = Depends(get_current_user)) -> dict:

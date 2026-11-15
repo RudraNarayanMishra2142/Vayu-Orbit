@@ -1,5 +1,4 @@
 import { getAppCheckToken } from './firebase';
-import { getFirebaseIdToken, loginWithFirebase, logoutFromFirebase } from './firebaseAuth';
 
 let apiConfigError = null;
 
@@ -69,13 +68,7 @@ async function req(path, opts = {}) {
   if (apiConfigError) {
     throw new Error(apiConfigError);
   }
-  let token = null;
-  try {
-    token = await getFirebaseIdToken();
-  } catch {}
-  if (!token) {
-    token = getAuthToken();
-  }
+  const token = getAuthToken();
 
   let appCheckToken = null;
   try {
@@ -118,24 +111,6 @@ async function req(path, opts = {}) {
     } catch {}
   }
 
-  // If request failed with 401 on an authenticated endpoint, try refreshing Firebase ID token once
-  if (r.status === 401 && !opts._retriedAuth && path !== '/api/auth/login' && path !== '/api/auth/session') {
-    try {
-      const refreshedAuthToken = await getFirebaseIdToken(true);
-      if (refreshedAuthToken) {
-        setAuthToken(refreshedAuthToken);
-        return await req(path, {
-          ...opts,
-          _retriedAuth: true,
-          headers: {
-            ...(opts.headers || {}),
-            Authorization: `Bearer ${refreshedAuthToken}`
-          }
-        });
-      }
-    } catch {}
-  }
-
   if (r.status === 401 && path !== '/api/auth/login' && path !== '/api/auth/session' && !(typeof d?.detail === 'string' && d.detail.includes('App Check'))) {
     setAuthToken(null);
     if (typeof unauthorizedHandler === 'function') {
@@ -159,42 +134,18 @@ async function req(path, opts = {}) {
 export const api = {
   base: BASE || (apiConfigError ? 'UNCONFIGURED_PRODUCTION_API' : 'http://127.0.0.1:8000'),
   configError: apiConfigError,
-  // Firebase Authentication
+  // Direct Sovereign JWT Authentication
   login: async (email, password) => {
-    let idToken = null;
-    try {
-      const fbAuthResult = await loginWithFirebase(email, password);
-      idToken = fbAuthResult.idToken;
-    } catch (fbErr) {
-      console.warn('Firebase client login attempt:', fbErr.message);
-      // If error is invalid credentials or disabled, rethrow to show accurate user feedback
-      if (fbErr.code && fbErr.code !== 'auth/network-request-failed') {
-        throw fbErr;
-      }
-    }
-
-    if (idToken) {
-      const sessionRes = await req('/api/auth/session', {
-        method: 'POST',
-        body: JSON.stringify({ id_token: idToken })
-      });
-      if (sessionRes?.token) {
-        setAuthToken(sessionRes.token);
-      }
-      return sessionRes;
-    }
-
-    // Direct / Transition Fallback
-    const res = await req('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+    const res = await req('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email: email.trim(), password })
+    });
     if (res?.token) {
       setAuthToken(res.token);
     }
     return res;
   },
   logout: async () => {
-    try {
-      await logoutFromFirebase();
-    } catch {}
     try {
       await req('/api/auth/logout', { method: 'POST' });
     } finally {

@@ -113,20 +113,14 @@ def verify_firebase_id_token(token: str, check_revoked: bool = False) -> Optiona
 
 def verify_legacy_jwt(token: str) -> Optional[dict]:
     """
-    Controlled legacy JWT verification for backward compatibility during migration.
-    Strictly blocked in production (APP_ENV=production).
-    Only enabled in non-production environments when VAYU_ALLOW_LEGACY_JWT is not 'false'.
+    Verifies VAYU ORBIT sovereign JWT access tokens.
+    Supports secure token verification across all deployment environments.
     """
-    if os.environ.get("APP_ENV", "").lower() == "production":
-        logger.warning("Legacy JWT authentication rejected: Legacy JWT authentication is disabled in production.")
-        return None
-
-    if os.environ.get("VAYU_ALLOW_LEGACY_JWT", "true").lower() == "false":
+    if not token or not isinstance(token, str):
         return None
 
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        logger.debug("Legacy JWT token verified under temporary migration transition.")
         return payload
     except (jwt.PyJWTError, Exception):
         return None
